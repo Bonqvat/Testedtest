@@ -23,6 +23,18 @@ switch ($action) {
     case 'addFeedback':
         addFeedback($pdo);
         break;
+    case 'registerUser':
+        registerUser($pdo);
+        break;
+    case 'loginUser':
+        loginUser($pdo);
+        break;
+    case 'getUserData':
+        getUserData($pdo);
+        break;
+    case 'updateUserData':
+        updateUserData($pdo);
+        break;
     default:
         echo json_encode(['error' => 'Invalid action']);
 }
@@ -70,6 +82,152 @@ function addFeedback($pdo) {
             VALUES (?, ?, ?, ?, ?)
         ");
         $stmt->execute([$name, $phone, $email, $subject, $message]);
+        echo json_encode(['success' => true]);
+    } catch (PDOException $e) {
+        echo json_encode(['error' => $e->getMessage()]);
+    }
+}
+
+// Регистрация пользователя
+function registerUser($pdo) {
+    $data = json_decode(file_get_contents('php://input'), true);
+    
+    $email = $data['email'] ?? '';
+    $password = $data['password'] ?? '';
+    $name = $data['name'] ?? '';
+
+    if (empty($email) || empty($password) || empty($name)) {
+        echo json_encode(['error' => 'All fields are required']);
+        return;
+    }
+
+    try {
+        // Проверка существующего email
+        $stmt = $pdo->prepare("SELECT COUNT(*) FROM users WHERE email = ?");
+        $stmt->execute([$email]);
+        if ($stmt->fetchColumn() > 0) {
+            echo json_encode(['error' => 'Email already registered']);
+            return;
+        }
+
+        $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
+        $stmt = $pdo->prepare("INSERT INTO users (email, password, name) VALUES (?, ?, ?)");
+        $stmt->execute([$email, $hashedPassword, $name]);
+        echo json_encode(['success' => true]);
+    } catch (PDOException $e) {
+        echo json_encode(['error' => $e->getMessage()]);
+    }
+}
+
+// Авторизация пользователя
+function loginUser($pdo) {
+    $data = json_decode(file_get_contents('php://input'), true);
+    
+    $email = $data['email'] ?? '';
+    $password = $data['password'] ?? '';
+
+    if (empty($email) || empty($password)) {
+        echo json_encode(['error' => 'Email and password are required']);
+        return;
+    }
+
+    try {
+        $stmt = $pdo->prepare("SELECT * FROM users WHERE email = ?");
+        $stmt->execute([$email]);
+        $user = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        if ($user && password_verify($password, $user['password'])) {
+            unset($user['password']);
+            echo json_encode(['success' => true, 'user' => $user]);
+        } else {
+            echo json_encode(['error' => 'Invalid credentials']);
+        }
+    } catch (PDOException $e) {
+        echo json_encode(['error' => $e->getMessage()]);
+    }
+}
+
+// Получение данных пользователя
+function getUserData($pdo) {
+    $userId = $_GET['userId'] ?? 0;
+    
+    if (!$userId) {
+        echo json_encode(['error' => 'User ID required']);
+        return;
+    }
+
+    try {
+        $stmt = $pdo->prepare("
+            SELECT id, email, name, address, phone, notifications 
+            FROM users 
+            WHERE id = ?
+        ");
+        $stmt->execute([$userId]);
+        $user = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        if ($user) {
+            echo json_encode($user);
+        } else {
+            echo json_encode(['error' => 'User not found']);
+        }
+    } catch (PDOException $e) {
+        echo json_encode(['error' => $e->getMessage()]);
+    }
+}
+
+// Обновление данных пользователя
+function updateUserData($pdo) {
+    $data = json_decode(file_get_contents('php://input'), true);
+    
+    $userId = $data['userId'] ?? 0;
+    $type = $data['type'] ?? '';
+    
+    if (!$userId) {
+        echo json_encode(['error' => 'User ID required']);
+        return;
+    }
+
+    try {
+        switch ($type) {
+            case 'personal':
+                $name = $data['name'] ?? '';
+                $phone = $data['phone'] ?? '';
+                if (empty($name) || empty($phone)) {
+                    echo json_encode(['error' => 'Name and phone are required']);
+                    return;
+                }
+                $stmt = $pdo->prepare("UPDATE users SET name = ?, phone = ? WHERE id = ?");
+                $stmt->execute([$name, $phone, $userId]);
+                break;
+                
+            case 'address':
+                $address = $data['address'] ?? '';
+                $stmt = $pdo->prepare("UPDATE users SET address = ? WHERE id = ?");
+                $stmt->execute([$address, $userId]);
+                break;
+                
+            case 'security':
+                $newPassword = $data['password'] ?? '';
+                if (empty($newPassword)) {
+                    echo json_encode(['error' => 'Password is required']);
+                    return;
+                }
+                $hashedPassword = password_hash($newPassword, PASSWORD_DEFAULT);
+                $stmt = $pdo->prepare("UPDATE users SET password = ? WHERE id = ?");
+                $stmt->execute([$hashedPassword, $userId]);
+                break;
+                
+            case 'notifications':
+                $notifications = $data['notifications'] ?? false;
+                $stmt = $pdo->prepare("UPDATE users SET notifications = ? WHERE id = ?");
+                $stmt->execute([$notifications, $userId]);
+                break;
+                
+            default:
+                echo json_encode(['error' => 'Invalid update type']);
+                return;
+        }
+        
         echo json_encode(['success' => true]);
     } catch (PDOException $e) {
         echo json_encode(['error' => $e->getMessage()]);

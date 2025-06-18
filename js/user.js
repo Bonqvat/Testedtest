@@ -1,14 +1,50 @@
 function initUserPage() {
     // Инициализация состояния приложения
-    if (!JSON.parse(localStorage.getItem('futureAutoState'))) {
-        localStorage.setItem('futureAutoState', JSON.stringify({
+    let state = JSON.parse(localStorage.getItem('futureAutoState'));
+    if (!state) {
+        state = {
             user: null,
             cart: [],
             favorites: []
-        }));
+        };
+        localStorage.setItem('futureAutoState', JSON.stringify(state));
     }
 
     let currentEditType = '';
+
+    // Проверка авторизации пользователя
+    if (!state.user) {
+        alert('Пожалуйста, войдите в систему');
+        window.location.href = '#index';
+        return;
+    }
+
+    // Загрузка данных пользователя
+    function loadUserData() {
+        fetch(`script.php?action=getUserData&userId=${state.user.id}`)
+            .then(response => response.json())
+            .then(userData => {
+                // Заполнение профиля
+                document.getElementById('userName').textContent = userData.name;
+                document.getElementById('userEmail').textContent = userData.email;
+                document.getElementById('userPhone').textContent = userData.phone || 'Не указан';
+                document.getElementById('userAddress').textContent = userData.address || 'Не указан';
+                
+                // Заполнение модальных форм
+                document.getElementById('editName').value = userData.name;
+                document.getElementById('editPhone').value = userData.phone;
+                document.getElementById('editAddress').value = userData.address || '';
+                document.getElementById('editNotifications').checked = userData.notifications || false;
+                
+                // Обновление состояния
+                state.user = {...state.user, ...userData};
+                localStorage.setItem('futureAutoState', JSON.stringify(state));
+            })
+            .catch(error => {
+                console.error('Error loading user data:', error);
+                showNotification('Ошибка загрузки данных', 'error');
+            });
+    }
 
     // Функции работы с модальными окнами
     function openEditModal(type) {
@@ -35,6 +71,10 @@ function initUserPage() {
             case 'security':
                 title.textContent = 'Изменение пароля';
                 document.getElementById('securityFields').style.display = 'block';
+                // Очистка полей пароля при открытии
+                document.getElementById('editCurrentPassword').value = '';
+                document.getElementById('editNewPassword').value = '';
+                document.getElementById('editConfirmPassword').value = '';
                 break;
             case 'notifications':
                 title.textContent = 'Настройки уведомлений';
@@ -46,9 +86,48 @@ function initUserPage() {
     }
     
     function saveChanges() {
-        showNotification('Изменения успешно сохранены');
-        // Прямая замена вызова closeModal
-        document.getElementById('editModal').style.display = 'none';
+        const formData = {
+            userId: state.user.id,
+            type: currentEditType
+        };
+
+        switch(currentEditType) {
+            case 'personal':
+                formData.name = document.getElementById('editName').value;
+                formData.phone = document.getElementById('editPhone').value;
+                break;
+            case 'address':
+                formData.address = document.getElementById('editAddress').value;
+                break;
+            case 'security':
+                formData.password = document.getElementById('editNewPassword').value;
+                // Добавьте здесь проверку совпадения паролей при необходимости
+                break;
+            case 'notifications':
+                formData.notifications = document.getElementById('editNotifications').checked;
+                break;
+        }
+
+        fetch('script.php?action=updateUserData', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(formData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showNotification('Изменения успешно сохранены');
+                document.getElementById('editModal').style.display = 'none';
+                // Обновляем данные после сохранения
+                loadUserData();
+            } else {
+                showNotification(data.error || 'Ошибка сохранения', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Save error:', error);
+            showNotification('Ошибка сети', 'error');
+        });
     }
 
     // Функции работы с заказами
@@ -88,21 +167,15 @@ function initUserPage() {
         }, 3000);
     }
 
-    // Проверка авторизации пользователя
-    const state = JSON.parse(localStorage.getItem('futureAutoState'));
-    if (!state || !state.user) {
-        alert('Пожалуйста, войдите в систему');
-        window.location.href = '#index';
-        return;
-    }
-
     // Обработчики событий
     window.onclick = function(event) {
         if (event.target.classList.contains('modal')) {
-            // Прямая замена вызова closeModal
             document.getElementById('editModal').style.display = 'none';
         }
     };
+
+    // Загрузка данных пользователя при инициализации
+    loadUserData();
 
     // Экспорт функций в глобальную область видимости
     window.openEditModal = openEditModal;
