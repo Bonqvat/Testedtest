@@ -66,11 +66,17 @@ async function initCatalogPage() {
 // Загрузка автомобилей из БД
 async function loadCarsFromDB() {
   try {
-    const response = await fetch('ajax.php?action=getCars');
+    // Изменено: запрос к script.php вместо ajax.php
+    const response = await fetch('script.php?action=getCars');
     const data = await response.json();
     
     if (Array.isArray(data)) {
-      cars = data;
+      // Преобразование JSONB-полей в массивы
+      cars = data.map(car => ({
+        ...car,
+        features: car.features ? JSON.parse(car.features) : [],
+        images: car.images ? JSON.parse(car.images) : []
+      }));
     } else {
       console.error('Invalid data format:', data);
       // Можно добавить fallback на локальные данные или уведомление
@@ -156,9 +162,13 @@ function renderCatalog(carsToShow) {
     const carCard = document.createElement('div');
     carCard.className = 'car-card';
     carCard.style.animationDelay = `${0.1 * index}s`;
+    
+    // Изменено: использование первого изображения из массива
+    const imageUrl = car.images.length > 0 ? car.images[0] : 'no-image.jpg';
+    
     carCard.innerHTML = `
       <div class="car-status">${car.status}</div>
-      <img src="${car.image}" alt="${car.brand} ${car.model}">
+      <img src="${imageUrl}" alt="${car.brand} ${car.model}">
       <div class="car-info">
         <h3>${car.brand} ${car.model} ${car.year}</h3>
         <p>${car.description}</p>
@@ -402,22 +412,24 @@ function filterCars() {
     // Фильтрация по приводу
     if (driveType && car.drive !== driveType) return false;
     
-    // Фильтрация по мощности
+    // Фильтрация по мощности (используем реальное поле из БД)
     if (power) {
+      const carPower = car.power; // Изменено: используем реальное поле
       const powerValue = parseInt(power);
-      if (powerValue === 50 && car.power > 50) return false;
-      if (powerValue === 100 && (car.power <= 50 || car.power > 100)) return false;
-      if (powerValue === 150 && (car.power <= 100 || car.power > 150)) return false;
-      if (powerValue === 200 && (car.power <= 150 || car.power > 200)) return false;
-      if (powerValue === 300 && (car.power <= 200 || car.power > 300)) return false;
-      if (powerValue === 500 && (car.power <= 300 || car.power > 500)) return false;
-      if (powerValue === 750 && (car.power <= 500 || car.power > 750)) return false;
-      if (powerValue === 1000 && (car.power <= 750 || car.power > 1000)) return false;
-      if (powerValue === 1001 && car.power <= 1000) return false;
+      if (powerValue === 50 && carPower > 50) return false;
+      if (powerValue === 100 && (carPower <= 50 || carPower > 100)) return false;
+      if (powerValue === 150 && (carPower <= 100 || carPower > 150)) return false;
+      if (powerValue === 200 && (carPower <= 150 || carPower > 200)) return false;
+      if (powerValue === 300 && (carPower <= 200 || carPower > 300)) return false;
+      if (powerValue === 500 && (carPower <= 300 || carPower > 500)) return false;
+      if (powerValue === 750 && (carPower <= 500 || carPower > 750)) return false;
+      if (powerValue === 1000 && (carPower <= 750 || carPower > 1000)) return false;
+      if (powerValue === 1001 && carPower <= 1000) return false;
     }
     
-    // Фильтрация по цене
-    if (car.price < minPrice || car.price > maxPrice) return false;
+    // Фильтрация по цене (используем реальное поле из БД)
+    const carPrice = car.price; // Изменено: используем реальное поле
+    if (carPrice < minPrice || carPrice > maxPrice) return false;
     
     // Фильтрация по поисковому запросу
     if (searchText) {
@@ -566,14 +578,17 @@ function getDriveType(type) {
 
 // Генерация характеристик для автомобиля
 function generateCarDetails(car) {
+  // Изменено: используем реальные значения из БД
+  const power = car.power; // Используем реальное поле из БД
+  
   // Генерация объема двигателя на основе мощности
-  const engineVolume = (car.power / 90).toFixed(1) + ' л';
+  const engineVolume = (power / 90).toFixed(1) + ' л';
   
   // Генерация разгона 0-100 км/ч
-  const acceleration = (10 - car.power / 50).toFixed(1) + ' с';
+  const acceleration = (10 - power / 50).toFixed(1) + ' с';
   
   // Генерация расхода топлива
-  const fuelConsumption = (car.power / 35).toFixed(1) + ' л / 100 км';
+  const fuelConsumption = (power / 35).toFixed(1) + ' л / 100 км';
   
   // Определение страны производителя
   const countryMap = {
@@ -593,7 +608,7 @@ function generateCarDetails(car) {
     fuelConsumption,
     country,
     doors,
-    torque: (car.power * 1.7).toFixed(0) + ' Нм'
+    torque: (power * 1.7).toFixed(0) + ' Нм'
   };
 }
 
@@ -645,7 +660,9 @@ function renderCar(car) {
   
   // Устанавливаем изображение автомобиля (с заглушкой при ошибке)
   const img = document.getElementById('mainImage');
-  img.src = car.image;
+  // Изменено: использование первого изображения из массива
+  const imageUrl = car.images.length > 0 ? car.images[0] : 'no-image.jpg';
+  img.src = imageUrl;
   img.alt = `${car.brand} ${car.model}`;
   img.onerror = function() {
     // Если изображение не загрузилось, используем заглушку

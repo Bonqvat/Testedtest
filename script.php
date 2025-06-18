@@ -29,7 +29,20 @@ switch ($action) {
 
 function getCars($pdo) {
     try {
-        $stmt = $pdo->query("SELECT * FROM cars ORDER BY created_at DESC");
+        $stmt = $pdo->query("
+            SELECT 
+                id, brand, model, year, price, description, 
+                body_type AS bodyType, 
+                drive, 
+                features, 
+                images, 
+                specs,
+                power,
+                status,
+                created_at AS createdAt
+            FROM cars 
+            ORDER BY created_at DESC
+        ");
         $cars = $stmt->fetchAll(PDO::FETCH_ASSOC);
         echo json_encode($cars);
     } catch (PDOException $e) {
@@ -41,17 +54,22 @@ function addFeedback($pdo) {
     $data = json_decode(file_get_contents('php://input'), true);
     
     $name = $data['name'] ?? '';
+    $phone = $data['phone'] ?? '';
     $email = $data['email'] ?? '';
+    $subject = $data['subject'] ?? '';
     $message = $data['message'] ?? '';
 
-    if (empty($name) || empty($email) || empty($message)) {
+    if (empty($name) || empty($phone) || empty($email) || empty($subject) || empty($message)) {
         echo json_encode(['error' => 'All fields are required']);
         return;
     }
 
     try {
-        $stmt = $pdo->prepare("INSERT INTO feedback (name, email, message) VALUES (?, ?, ?)");
-        $stmt->execute([$name, $email, $message]);
+        $stmt = $pdo->prepare("
+            INSERT INTO feedback (name, phone, email, subject, message) 
+            VALUES (?, ?, ?, ?, ?)
+        ");
+        $stmt->execute([$name, $phone, $email, $subject, $message]);
         echo json_encode(['success' => true]);
     } catch (PDOException $e) {
         echo json_encode(['error' => $e->getMessage()]);
