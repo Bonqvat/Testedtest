@@ -1,0 +1,115 @@
+<div class="container">
+  <div class="product-section">
+    <div class="product-image">
+      <img src="images/knewstar-001.png" alt="KNEWSTAR 001" id="mainImage" style="max-height: 100%; max-width: 100%;">
+      <div class="colors" id="colors-container">
+        <div class="color active" style="background: black;" onclick="changeColor('black', 'images/knewstar-001.png')"></div>
+        <div class="color" style="background: gray;" onclick="changeColor('gray', 'images/knewstar-001-gray.png')"></div>
+        <div class="color" style="background: white;" onclick="changeColor('white', 'images/knewstar-001-white.png')"></div>
+      </div>
+    </div>
+    <div class="product-details">
+      <h2 id="car-title">KNEWSTAR 001</h2>
+      <div class="price" id="car-price">3 740 190₽</div>
+      <div class="buttons">
+        <button onclick="addToCart()">Добавить в корзину</button>
+        <button onclick="addToFavorites()">В избранное</button>
+        <button onclick="showOrderModal()">Оформить заказ</button>
+        <button onclick="showTestDriveModal()">Записаться на тест-драйв</button>
+      </div>
+      <div class="description" id="car-description">
+        Купе-кроссовер 001 — новая модель в линейке бренда KNEWSTAR: сочетание элегантного дизайна, передовых технологий и современных мощностей.
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h3>Основные характеристики</h3>
+    <table id="specs-main">
+      <tr><td>Мощность двигателя</td><td>238 ЛС</td></tr>
+      <tr><td>Объем двигателя</td><td>2.0 л</td></tr>
+      <tr><td>Разгон 0-100 км/ч</td><td>7.4 с</td></tr>
+      <tr><td>Расход топлива</td><td>8.1 л / 100 км</td></tr>
+      <tr><td>Привод</td><td>Полный</td></tr>
+    </table>
+  </div>
+
+  <div class="section">
+    <h3>Двигатель</h3>
+    <table id="specs-engine">
+      <tr><td>Рабочий объем</td><td>1969 см³</td></tr>
+      <tr><td>Тип двигателя</td><td>Бензиновый</td></tr>
+      <tr><td>Конфигурация</td><td>Рядный</td></tr>
+      <tr><td>Обороты макс.</td><td>6500 об/мин</td></tr>
+      <tr><td>Крутящий момент</td><td>350 Нм</td></tr>
+    </table>
+  </div>
+
+  <div class="section">
+    <h3>Размеры</h3>
+    <table id="specs-dimensions">
+      <tr><td>Длина</td><td>4590 мм</td></tr>
+      <tr><td>Ширина</td><td>1872 мм</td></tr>
+      <tr><td>Высота</td><td>1664 мм</td></tr>
+      <tr><td>Колесная база</td><td>2800 мм</td></tr>
+      <tr><td>Объем багажника</td><td>446 л</td></tr>
+    </table>
+  </div>
+
+  <div class="section">
+    <h3>Общая информация</h3>
+    <table id="specs-general">
+      <tr><td>Страна</td><td>Китай</td></tr>
+      <tr><td>Год</td><td>2024-2025</td></tr>
+      <tr><td>Кузов</td><td>Купе</td></tr>
+      <tr><td>Комплектация</td><td>Flagship Sport</td></tr>
+      <tr><td>Количество дверей</td><td>5</td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- Модальное окно оформления заказа -->
+<div id="orderModal" class="modal">
+  <div class="modal-content">
+    <span class="close" onclick="closeModal('orderModal')">&times;</span>
+    <h3 class="modal-title">Оформление заказа</h3>
+    <form id="orderForm">
+      <div>
+        <label for="orderName">ФИО:</label>
+        <input type="text" id="orderName" required>
+      </div>
+      <div>
+        <label for="orderPhone">Телефон:</label>
+        <input type="tel" id="orderPhone" required>
+      </div>
+      <div>
+        <label for="orderAddress">Адрес:</label>
+        <input type="text" id="orderAddress" required>
+      </div>
+      <button type="submit">Подтвердить заказ</button>
+    </form>
+  </div>
+</div>
+
+<!-- Модальное окно тест-драйва -->
+<div id="testDriveModal" class="modal">
+  <div class="modal-content">
+    <span class="close" onclick="closeModal('testDriveModal')">&times;</span>
+    <h3 class="modal-title">Запись на тест-драйв</h3>
+    <form id="testDriveForm">
+      <div>
+        <label for="testDriveName">ФИО:</label>
+        <input type="text" id="testDriveName" required>
+      </div>
+      <div>
+        <label for="testDrivePhone">Телефон:</label>
+        <input type="tel" id="testDrivePhone" required>
+      </div>
+      <div>
+        <label for="testDriveDate">Дата:</label>
+        <input type="date" id="testDriveDate" required>
+      </div>
+      <button type="submit">Записаться</button>
+    </form>
+  </div>
+</div>

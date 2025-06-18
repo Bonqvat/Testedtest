@@ -1,0 +1,39 @@
+<div class="background"></div>
+<div class="search-section">
+  <p class="search-subtitle">Найдите автомобили на продажу рядом с вами</p>
+  <h1 class="search-title">Найдите свой идеальный автомобиль</h1>
+  <div class="filter-options">
+    <span class="filter-option selected" data-filter="all">Все</span>
+    <span class="filter-option" data-filter="new">Новые</span>
+    <span class="filter-option" data-filter="used">Б/У</span>
+  </div>
+
+  <div class="search-box">
+    <div class="dropdown">
+      <button id="brandButton">Любые марки</button>
+      <div class="dropdown-content" id="brandList">
+        <!-- Brands will be populated dynamically -->
+      </div>
+    </div>
+
+    <div class="dropdown">
+      <button id="modelButton">Любые модели</button>
+      <div class="dropdown-content" id="modelList"></div>
+    </div>
+    
+    <div class="dropdown">
+      <input type="number" class="price-input" placeholder="Цена любая" min="0" max="500000">
+    </div>
+    
+    <button class="btn" id="searchButton">🔍 Искать авто</button>
+  </div>
+  <p class="recommended-text">Или посмотрите рекомендуемую модель</p>
+  <div class="car-types">
+    <div data-type="suv" class="car-type-btn">🚙 Внедорожник</div>
+    <div data-type="sedan" class="car-type-btn">🚗 Седан</div>
+    <div data-type="hatchback" class="car-type-btn">🚘 Хэтчбэк</div>
+    <div data-type="coupe" class="car-type-btn">🏎️ Купе</div>
+  </div>
+  
+  <div class="recommended-cars" id="recommendedCars"></div>
+</div>

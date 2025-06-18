@@ -1,0 +1,72 @@
+    <div class="container">
+        <img id="carPreview" class="car-preview" alt="Превью автомобиля">
+        
+        <h2>Марка автомобиля</h2>
+        <select id="brand" required onchange="updateModels()">
+            <option value="">Выберите марку автомобиля</option>
+        </select>
+        
+        <h2>Модель автомобиля</h2>
+        <select id="model" required onchange="updateCarDetails()">
+            <option value="">Выберите модель автомобиля</option>
+        </select>
+        
+        <h2>Выберите ближайший от вас автосалон</h2>
+        <select id="dealer" required onchange="updateMap()">
+            <option value="">Выберите ближайший от вас автосалон</option>
+            <option value="54.348333,48.586111">Автосалон 1 (Центральный)</option>
+            <option value="54.375833,48.584444">Автосалон 2 (Северный)</option>
+            <option value="54.354444,48.366944">Автосалон 3 (Западный)</option>
+            <option value="54.340833,48.399722">Автосалон 4 (Южный)</option>
+            <option value="54.330556,48.366111">Автосалон 5 (Восточный)</option>
+        </select>
+        <div id="map" class="map-container"></div>
+        
+        <h2>Выберите способ оплаты</h2>
+        <select id="payment" required>
+            <option value="">Выберите способ оплаты</option>
+            <option value="card">Банковская карта</option>
+            <option value="cash">Наличные</option>
+            <option value="credit">Кредит</option>
+            <option value="installment">Рассрочка</option>
+        </select>
+        
+        <h2>Дополнительные услуги</h2>
+        <select id="services" size="4" multiple onchange="updateServices(this)">
+            <option value="Страхование">Страхование (50 000 руб.)</option>
+            <option value="Доп. ТО">Доп. ТО (30 000 руб.)</option>
+            <option value="Замена шин">Замена шин (15 000 руб.)</option>
+            <option value="Премиум страховка">Премиум страховка (80 000 руб.)</option>
+        </select>
+        
+        <h2>Опции</h2>
+        <select id="options" size="4" multiple onchange="updateOptions(this)">
+            <option value="Кожаный салон">Кожаный салон (60 000 руб.)</option>
+            <option value="Навигация">Навигация (25 000 руб.)</option>
+            <option value="Премиум аудиосистема">Премиум аудиосистема (40 000 руб.)</option>
+            <option value="Панорамная крыша">Панорамная крыша (70 000 руб.)</option>
+        </select>
+        
+        <h2>Подтвердите контактный номер телефона</h2>
+        <input type="tel" id="phone" placeholder="Введите номер телефона например +79212312321" required>
+        
+        <div class="summary" id="summary">
+            <p>Авто: <span id="carPrice">-</span> рублей</p>
+            <p>Услуги: <span id="servicePrice">0</span> рублей</p>
+            <p>Опции: <span id="insurancePrice">0</span> рублей</p>
+            <p><strong>Итого: <span id="totalPrice">0</span> рублей</strong></p>
+        </div>
+        
+        <button id="submit" onclick="showOrderConfirmation()">Оформить заказ</button>
+    </div>
+
+    <div id="orderModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeOrderModal()">&times;</span>
+            <h2>Ваш заказ успешно оформлен!</h2>
+            <p>Сумма заказа: <span id="orderTotal"></span> рублей.</p>
+            <p>Пожалуйста, направьтесь в выбранный автосалон для оплаты:</p>
+            <p><strong>Адрес автосалона: <span id="dealerAddress"></span></strong></p>
+            <button onclick="closeOrderModal()">Закрыть</button>
+        </div>
+    </div>

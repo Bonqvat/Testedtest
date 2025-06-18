@@ -1,0 +1,109 @@
+<section class="catalog-container">
+  <div class="search-filter-wrapper">
+    <div class="search-container">
+      <button class="filters-button" id="filterToggle">
+        <i class="fas fa-sliders-h"></i> Фильтры
+      </button>
+      <div class="search-bar-container">
+        <input type="text" class="search-bar" id="search" placeholder="Поиск по названию автомобиля" oninput="showSuggestions(this.value)">
+        <div id="suggestions" class="autocomplete-suggestions"></div>
+      </div>
+      <button class="search-btn" onclick="performSearch()">
+        <i class="fas fa-search"></i> Поиск
+      </button>
+    </div>
+  </div>
+
+  <div id="filtersPanel" class="filters-container">
+    <div class="filter-group">
+      <h4>Марка <span class="reset-filter" onclick="resetFilter('brandSelect')">Сбросить</span></h4>
+      <select id="brandSelect" onchange="updateModels()">
+        <option value="" selected>Выберите марку</option>
+        <option value="toyota">Toyota</option>
+        <option value="audi">Audi</option>
+        <option value="bmw">BMW</option>
+        <option value="skoda">Skoda</option>
+      </select>
+    </div>
+    
+    <div class="filter-group">
+      <h4>Модель <span class="reset-filter" onclick="resetFilter('modelSelect')">Сбросить</span></h4>
+      <select id="modelSelect" disabled onchange="filterCars()">
+        <option value="" selected>Сначала выберите марку</option>
+      </select>
+    </div>
+    
+    <div class="filter-group">
+      <h4>Год выпуска <span class="reset-filter" onclick="resetFilter('yearSelect')">Сбросить</span></h4>
+      <select id="yearSelect" onchange="filterCars()">
+        <option value="" selected>Любой</option>
+      </select>
+    </div>
+    
+    <div class="filter-group">
+      <h4>Тип кузова <span class="reset-filter" onclick="resetFilter('bodyTypeSelect')">Сбросить</span></h4>
+      <select id="bodyTypeSelect" onchange="filterByBodyType()">
+        <option value="" selected>Любой</option>
+        <option value="sedan">Седан</option>
+        <option value="hatchback">Хэтчбэк</option>
+        <option value="suv">Кроссовер</option>
+        <option value="crossover">Внедорожник</option>
+      </select>
+    </div>
+    
+    <div class="filter-group">
+      <h4>Привод <span class="reset-filter" onclick="resetFilter('driveTypeSelect')">Сбросить</span></h4>
+      <select id="driveTypeSelect" onchange="filterCars()">
+        <option value="" selected>Любой</option>
+        <option value="front">Передний</option>
+        <option value="rear">Задний</option>
+        <option value="full">Полный</option>
+      </select>
+    </div>
+    
+    <div class="filter-group">
+      <h4>Мощность (л.с.) <span class="reset-filter" onclick="resetFilter('powerSelect')">Сбросить</span></h4>
+      <select id="powerSelect" onchange="filterCars()">
+        <option value="" selected>Любая</option>
+        <option value="50">До 50</option>
+        <option value="100">50-100</option>
+        <option value="150">100-150</option>
+        <option value="200">150-200</option>
+        <option value="300">200-300</option>
+        <option value="500">300-500</option>
+        <option value="750">500-750</option>
+        <option value="1000">750-1000</option>
+        <option value="1001">1000+</option>
+      </select>
+    </div>
+    
+    <div class="filter-group price-filter">
+      <h4>Цена, ₽ <span class="reset-filter" onclick="resetPriceFilter()">Сбросить</span></h4>
+      <div class="price-inputs">
+        <input type="number" id="minPrice" placeholder="от" min="0" value="300000" step="1000" onchange="updatePriceSlider()">
+        <input type="number" id="maxPrice" placeholder="до" min="0" value="10000000" step="1000" onchange="updatePriceSlider()">
+      </div>
+      <div class="price-slider-container">
+        <input type="range" id="priceSlider" min="0" max="10000000" value="300000" step="1000" class="price-slider" oninput="updatePriceInputs()">
+        <div class="price-labels">
+          <span>0</span>
+          <span>10 000 000</span>
+        </div>
+      </div>
+    </div>
+    
+    <button class="apply-filters" onclick="applyFilters()">Применить фильтры</button>
+  </div>
+
+  <div class="car-grid" id="carGrid">
+    <!-- Автомобили будут загружены через JavaScript -->
+  </div>
+
+  <div class="pagination" id="pagination">
+    <button onclick="changePage(-1)">&laquo; Предыдущие</button>
+    <button class="active-page" onclick="changePage(1)">1</button>
+    <button onclick="changePage(2)">2</button>
+    <button onclick="changePage(3)">3</button>
+    <button onclick="changePage(1)">Следующие &raquo;</button>
+  </div>
+</section>

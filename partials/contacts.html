@@ -1,0 +1,77 @@
+  <section class="contacts-container">
+    <div class="contacts-header">
+      <h1>Наши контакты</h1>
+      <p>Мы всегда рады помочь вам с выбором автомобиля и ответить на все ваши вопросы. Свяжитесь с нами удобным для вас способом.</p>
+    </div>
+    
+    <div class="contacts-grid">
+      <div class="contact-card">
+        <h2><i class="fas fa-map-marker-alt"></i> Адрес</h2>
+        <div class="contact-info">
+          <p><i class="fas fa-city"></i> г. Ульяновск</p>
+          <p><i class="fas fa-road"></i> ул. Автомобильная, 42</p>
+          <p><i class="fas fa-clock"></i> Пн-Пт: 9:00-18:00</p>
+          <p><i class="fas fa-clock"></i> Сб-Вс: 10:00-16:00</p>
+        </div>
+        <div class="contact-map">
+          <iframe src="https://yandex.ru/map-widget/v1/?um=constructor%3A1a2b3c4d5e6f7g8h9i0j&amp;source=constructor" frameborder="0"></iframe>
+        </div>
+      </div>
+      
+      <div class="contact-card">
+        <h2><i class="fas fa-phone-alt"></i> Телефоны</h2>
+        <div class="contact-info">
+          <p><i class="fas fa-phone"></i> +7 (8422) 56-34-89</p>
+          <p><i class="fas fa-mobile-alt"></i> +7 (937) 123-45-67</p>
+          <p><i class="fas fa-headset"></i> Техподдержка: +7 (800) 123-45-67</p>
+          <p><i class="fas fa-fax"></i> Факс: +7 (8422) 56-34-88</p>
+        </div>
+        
+        <h2 style="margin-top: 30px;"><i class="fas fa-envelope"></i> Электронная почта</h2>
+        <div class="contact-info">
+          <p><i class="fas fa-inbox"></i> info@futureauto.com</p>
+          <p><i class="fas fa-briefcase"></i> sales@futureauto.com</p>
+          <p><i class="fas fa-tools"></i> support@futureauto.com</p>
+        </div>
+      </div>
+      
+      <div class="contact-form">
+        <h2><i class="fas fa-paper-plane"></i> Форма обратной связи</h2>
+        <form id="feedbackForm">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="name">Ваше имя</label>
+              <input type="text" id="name" required>
+            </div>
+            <div class="form-group">
+              <label for="phone">Телефон</label>
+              <input type="tel" id="phone" required>
+            </div>
+          </div>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label for="email">Email</label>
+              <input type="email" id="email" required>
+            </div>
+            <div class="form-group">
+              <label for="subject">Тема обращения</label>
+              <select id="subject">
+                <option value="question">Вопрос по автомобилю</option>
+                <option value="test-drive">Запись на тест-драйв</option>
+                <option value="service">Сервисное обслуживание</option>
+                <option value="other">Другое</option>
+              </select>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label for="message">Ваше сообщение</label>
+            <textarea id="message" required></textarea>
+          </div>
+          
+          <button type="submit" class="submit-btn">Отправить сообщение</button>
+        </form>
+      </div>
+    </div>
+  </section>

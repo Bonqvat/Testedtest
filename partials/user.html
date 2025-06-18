@@ -1,0 +1,229 @@
+  <main>
+    <div class="user-container">
+      <div class="user-sidebar">
+        <img src="https://randomuser.me/api/portraits/men/32.jpg" alt="Аватар пользователя" class="user-avatar">
+        <div class="user-name">Иван Петров</div>
+        <ul class="user-menu">
+          <li><a href="#user" class="active"><i class="fas fa-user"></i> Профиль</a></li>
+          <li><a href="#orders"><i class="fas fa-clipboard-list"></i> Мои заказы</a></li>
+          <li><a href="#favorites"><i class="fas fa-star"></i> Избранное</a></li>
+          <li><a href="#settings"><i class="fas fa-cog"></i> Настройки</a></li>
+          <li><a href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Выйти</a></li>
+        </ul>
+      </div>
+      
+      <div class="user-content">
+        <h2>Мой профиль</h2>
+        
+        <div class="user-info-grid">
+          <div class="info-card">
+            <h3>Основная информация</h3>
+            <div class="info-row">
+              <div class="info-label">ФИО:</div>
+              <div class="info-value">Петров Иван Сергеевич</div>
+            </div>
+            <div class="info-row">
+              <div class="info-label">Дата рождения:</div>
+              <div class="info-value">15.03.1985</div>
+            </div>
+            <div class="info-row">
+              <div class="info-label">Телефон:</div>
+              <div class="info-value">+7 (912) 345-67-89</div>
+            </div>
+            <div class="info-row">
+              <div class="info-label">Email:</div>
+              <div class="info-value">ivan.petrov@example.com</div>
+            </div>
+            <button class="edit-btn" onclick="openEditModal('personal')">Редактировать</button>
+          </div>
+          
+          <div class="info-card">
+            <h3>Адрес доставки</h3>
+            <div class="info-row">
+              <div class="info-label">Город:</div>
+              <div class="info-value">Ульяновск</div>
+            </div>
+            <div class="info-row">
+              <div class="info-label">Адрес:</div>
+              <div class="info-value">ул. Автомобильная, 42, кв. 15</div>
+            </div>
+            <div class="info-row">
+              <div class="info-label">Индекс:</div>
+              <div class="info-value">432000</div>
+            </div>
+            <button class="edit-btn" onclick="openEditModal('address')">Редактировать</button>
+          </div>
+          
+          <div class="info-card">
+            <h3>Безопасность</h3>
+            <div class="info-row">
+              <div class="info-label">Пароль:</div>
+              <div class="info-value">••••••••</div>
+            </div>
+            <div class="info-row">
+              <div class="info-label">Последний вход:</div>
+              <div class="info-value">Сегодня, 14:32</div>
+            </div>
+            <button class="edit-btn" onclick="openEditModal('security')">Изменить пароль</button>
+          </div>
+          
+          <div class="info-card">
+            <h3>Настройки уведомлений</h3>
+            <div class="info-row">
+              <div class="info-label">Email-уведомления:</div>
+              <div class="info-value">Включены</div>
+            </div>
+            <div class="info-row">
+              <div class="info-label">SMS-уведомления:</div>
+              <div class="info-value">Выключены</div>
+            </div>
+            <button class="edit-btn" onclick="openEditModal('notifications')">Настроить</button>
+          </div>
+        </div>
+        
+        <div class="orders-list">
+          <h2>Последние заказы</h2>
+          
+          <div class="order-card">
+            <div class="order-header">
+              <span class="order-id">Заказ #45892</span>
+              <span class="order-date">15.06.2023</span>
+            </div>
+            <div class="order-status status-completed">Завершен</div>
+            <div class="order-details">
+              <img src="https://avatars.mds.yandex.net/get-autoru-vos/2051780/3f8b3e2d6f4f0c2b6e3b4f3b4f3b4f3b/1200x900n" alt="Toyota Camry" class="order-car">
+              <div class="order-info">
+                <div class="order-model">Toyota Camry 2023</div>
+                <div>2.5 (181 л.с.), автомат, передний привод</div>
+                <div class="order-price">2 450 000 ₽</div>
+              </div>
+            </div>
+            <div class="order-actions">
+              <button class="action-btn" onclick="viewOrderDetails('45892')">Подробнее</button>
+              <button class="action-btn" onclick="repeatOrder('45892')">Повторить заказ</button>
+            </div>
+          </div>
+          
+          <div class="order-card">
+            <div class="order-header">
+              <span class="order-id">Заказ #42156</span>
+              <span class="order-date">02.05.2023</span>
+            </div>
+            <div class="order-status status-processing">В обработке</div>
+            <div class="order-details">
+              <img src="https://avatars.mds.yandex.net/get-autoru-vos/2051780/3f8b3e2d6f4f0c2b6e3b4f3b4f3b4f3b/1200x900n" alt="BMW X5" class="order-car">
+              <div class="order-info">
+                <div class="order-model">BMW X5 2023</div>
+                <div>3.0 (340 л.с.), автомат, полный привод</div>
+                <div class="order-price">6 890 000 ₽</div>
+              </div>
+            </div>
+            <div class="order-actions">
+              <button class="action-btn" onclick="viewOrderDetails('42156')">Подробнее</button>
+              <button class="action-btn" onclick="cancelOrder('42156')">Отменить</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Модальное окно редактирования профиля -->
+  <div id="editModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeModal()">&times;</span>
+      <h3 class="modal-title" id="modalTitle">Редактирование профиля</h3>
+      <form id="editForm">
+        <div id="personalFields" style="display: none;">
+          <div class="form-group">
+            <label for="editFirstName">Имя</label>
+            <input type="text" id="editFirstName" value="Иван" required>
+          </div>
+          <div class="form-group">
+            <label for="editLastName">Фамилия</label>
+            <input type="text" id="editLastName" value="Петров" required>
+          </div>
+          <div class="form-group">
+            <label for="editMiddleName">Отчество</label>
+            <input type="text" id="editMiddleName" value="Сергеевич">
+          </div>
+          <div class="form-group">
+            <label for="editBirthDate">Дата рождения</label>
+            <input type="date" id="editBirthDate" value="1985-03-15" required>
+          </div>
+          <div class="form-group">
+            <label for="editPhone">Телефон</label>
+            <input type="tel" id="editPhone" value="+79123456789" required>
+          </div>
+          <div class="form-group">
+            <label for="editEmail">Email</label>
+            <input type="email" id="editEmail" value="ivan.petrov@example.com" required>
+          </div>
+        </div>
+        
+        <div id="addressFields" style="display: none;">
+          <div class="form-group">
+            <label for="editCity">Город</label>
+            <input type="text" id="editCity" value="Ульяновск" required>
+          </div>
+          <div class="form-group">
+            <label for="editStreet">Улица</label>
+            <input type="text" id="editStreet" value="Автомобильная" required>
+          </div>
+          <div class="form-group">
+            <label for="editHouse">Дом</label>
+            <input type="text" id="editHouse" value="42" required>
+          </div>
+          <div class="form-group">
+            <label for="editApartment">Квартира</label>
+            <input type="text" id="editApartment" value="15">
+          </div>
+          <div class="form-group">
+            <label for="editZip">Индекс</label>
+            <input type="text" id="editZip" value="432000" required>
+          </div>
+        </div>
+        
+        <div id="securityFields" style="display: none;">
+          <div class="form-group">
+            <label for="currentPassword">Текущий пароль</label>
+            <input type="password" id="currentPassword" required>
+          </div>
+          <div class="form-group">
+            <label for="newPassword">Новый пароль</label>
+            <input type="password" id="newPassword" required>
+          </div>
+          <div class="form-group">
+            <label for="confirmPassword">Подтвердите пароль</label>
+            <input type="password" id="confirmPassword" required>
+          </div>
+        </div>
+        
+        <div id="notificationsFields" style="display: none;">
+          <div class="form-group">
+            <label>
+              <input type="checkbox" id="emailNotifications" checked> Получать email-уведомления
+            </label>
+          </div>
+          <div class="form-group">
+            <label>
+              <input type="checkbox" id="smsNotifications"> Получать SMS-уведомления
+            </label>
+          </div>
+          <div class="form-group">
+            <label>
+              <input type="checkbox" id="promoEmails" checked> Получать рекламные предложения по email
+            </label>
+          </div>
+        </div>
+        
+        <div class="btn-group">
+          <button type="button" class="modal-btn" onclick="saveChanges()">Сохранить</button>
+          <button type="button" class="modal-btn btn-secondary" onclick="closeModal()">Отмена</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Уведомление -->
+  <div class="notification" id="notification"></div>

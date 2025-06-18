@@ -1,0 +1,268 @@
+<section class="admin-container">
+    <div class="admin-header">
+      <h1>Панель администратора</h1>
+      <p>Управление контентом сайта, заявками и автомобилями</p>
+    </div>
+    
+    <div class="admin-stats">
+      <div class="stat-card">
+        <div class="stat-icon">
+          <i class="fas fa-comments"></i>
+        </div>
+        <h3>Новые заявки</h3>
+        <div class="stat-value">24</div>
+      </div>
+      
+      <div class="stat-card">
+        <div class="stat-icon">
+          <i class="fas fa-car"></i>
+        </div>
+        <h3>Автомобилей в каталоге</h3>
+        <div class="stat-value">58</div>
+      </div>
+      
+      <div class="stat-card">
+        <div class="stat-icon">
+          <i class="fas fa-users"></i>
+        </div>
+        <h3>Активных пользователей</h3>
+        <div class="stat-value">1,238</div>
+      </div>
+      
+      <div class="stat-card">
+        <div class="stat-icon">
+          <i class="fas fa-calendar-check"></i>
+        </div>
+        <h3>Тест-драйвов на этой неделе</h3>
+        <div class="stat-value">17</div>
+      </div>
+    </div>
+    
+    <div class="admin-tabs">
+      <button class="tab-btn active" data-tab="requests">Заявки</button>
+      <button class="tab-btn" data-tab="add-car">Добавить автомобиль</button>
+      <button class="tab-btn" data-tab="manage-cars">Управление автомобилями</button>
+      <button class="tab-btn" data-tab="settings">Настройки</button>
+    </div>
+    
+    <div id="requests" class="tab-content active">
+      <h2>Последние заявки</h2>
+      <table class="requests-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Имя</th>
+            <th>Телефон</th>
+            <th>Тема</th>
+            <th>Дата</th>
+            <th>Статус</th>
+            <th>Действия</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>#1024</td>
+            <td>Иван Петров</td>
+            <td>+7 (937) 456-78-90</td>
+            <td>Запись на тест-драйв</td>
+            <td>10.06.2024</td>
+            <td><span class="status status-new">Новая</span></td>
+            <td>
+              <button class="action-btn edit"><i class="fas fa-edit"></i></button>
+              <button class="action-btn delete"><i class="fas fa-trash"></i></button>
+            </td>
+          </tr>
+          <tr>
+            <td>#1023</td>
+            <td>Мария Сидорова</td>
+            <td>+7 (937) 123-45-67</td>
+            <td>Вопрос по автомобилю</td>
+            <td>09.06.2024</td>
+            <td><span class="status status-in-progress">В обработке</span></td>
+            <td>
+              <button class="action-btn edit"><i class="fas fa-edit"></i></button>
+              <button class="action-btn delete"><i class="fas fa-trash"></i></button>
+            </td>
+          </tr>
+          <tr>
+            <td>#1022</td>
+            <td>Алексей Иванов</td>
+            <td>+7 (937) 987-65-43</td>
+            <td>Сервисное обслуживание</td>
+            <td>08.06.2024</td>
+            <td><span class="status status-completed">Завершена</span></td>
+            <td>
+              <button class="action-btn edit"><i class="fas fa-edit"></i></button>
+              <button class="action-btn delete"><i class="fas fa-trash"></i></button>
+            </td>
+          </tr>
+          <tr>
+            <td>#1021</td>
+            <td>Ольга Николаева</td>
+            <td>+7 (937) 234-56-78</td>
+            <td>Запрос цены</td>
+            <td>07.06.2024</td>
+            <td><span class="status status-completed">Завершена</span></td>
+            <td>
+              <button class="action-btn edit"><i class="fas fa-edit"></i></button>
+              <button class="action-btn delete"><i class="fas fa-trash"></i></button>
+            </td>
+          </tr>
+          <tr>
+            <td>#1020</td>
+            <td>Дмитрий Волков</td>
+            <td>+7 (937) 876-54-32</td>
+            <td>Запись на тест-драйв</td>
+            <td>06.06.2024</td>
+            <td><span class="status status-new">Новая</span></td>
+            <td>
+              <button class="action-btn edit"><i class="fas fa-edit"></i></button>
+              <button class="action-btn delete"><i class="fas fa-trash"></i></button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    
+    <div id="add-car" class="tab-content">
+      <h2>Добавить новый автомобиль</h2>
+      <form id="car-form" class="admin-form">
+        <div class="form-group">
+          <label for="car-brand">Марка</label>
+          <input type="text" id="car-brand" required>
+        </div>
+        
+        <div class="form-group">
+          <label for="car-model">Модель</label>
+          <input type="text" id="car-model" required>
+        </div>
+        
+        <div class="form-group">
+          <label for="car-year">Год выпуска</label>
+          <input type="number" id="car-year" min="2000" max="2024" required>
+        </div>
+        
+        <div class="form-group">
+          <label for="car-price">Цена (руб.)</label>
+          <input type="number" id="car-price" required>
+        </div>
+        
+        <div class="form-group">
+          <label for="car-type">Тип автомобиля</label>
+          <select id="car-type" required>
+            <option value="sedan">Седан</option>
+            <option value="suv">Внедорожник</option>
+            <option value="hatchback">Хэтчбек</option>
+            <option value="coupe">Купе</option>
+            <option value="electric">Электромобиль</option>
+          </select>
+        </div>
+        
+        <div class="form-group">
+          <label for="car-color">Цвет</label>
+          <input type="text" id="car-color" required>
+        </div>
+        
+        <div class="form-group">
+          <label for="car-engine">Двигатель</label>
+          <input type="text" id="car-engine" placeholder="2.0 л, 150 л.с." required>
+        </div>
+        
+        <div class="form-group">
+          <label for="car-transmission">Коробка передач</label>
+          <select id="car-transmission" required>
+            <option value="automatic">Автоматическая</option>
+            <option value="manual">Механическая</option>
+            <option value="robot">Роботизированная</option>
+          </select>
+        </div>
+        
+        <div class="form-group full-width">
+          <label for="car-description">Описание</label>
+          <textarea id="car-description" required></textarea>
+        </div>
+        
+        <div class="form-group full-width">
+          <label for="car-image">Изображение автомобиля</label>
+          <input type="file" id="car-image" accept="image/*">
+          <img id="image-preview" class="image-preview" alt="Предпросмотр изображения">
+        </div>
+        
+        <div class="form-group">
+          <button type="submit" class="submit-btn">Добавить автомобиль</button>
+        </div>
+      </form>
+    </div>
+    
+    <div id="manage-cars" class="tab-content">
+      <div class="admin-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h2>Управление автомобилями</h2>
+        <button id="refreshCars" class="btn">Обновить список</button>
+      </div>
+      <div style="margin-bottom: 20px;">
+        <input type="text" placeholder="Поиск по марке или модели..." style="padding: 10px; width: 300px; border-radius: 6px; border: 1px solid #ddd;">
+      </div>
+      <table id="car-list" class="requests-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Марка</th>
+            <th>Модель</th>
+            <th>Год</th>
+            <th>Цена</th>
+            <th>Действия</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Данные будут загружаться через AJAX -->
+        </tbody>
+      </table>
+    </div>
+    
+    <div id="settings" class="tab-content">
+      <h2>Настройки сайта</h2>
+      <form class="admin-form">
+        <div class="form-group full-width">
+          <label for="site-name">Название сайта</label>
+          <input type="text" id="site-name" value="FutureAuto">
+        </div>
+        
+        <div class="form-group">
+          <label for="primary-color">Основной цвет</label>
+          <input type="color" id="primary-color" value="#4c6ef5">
+        </div>
+        
+        <div class="form-group">
+          <label for="logo-upload">Логотип</label>
+          <input type="file" id="logo-upload" accept="image/*">
+        </div>
+        
+        <div class="form-group full-width">
+          <label for="analytics-code">Код аналитики</label>
+          <textarea id="analytics-code" rows="5"></textarea>
+        </div>
+        
+        <div class="form-group full-width">
+          <label>Уведомления</label>
+          <div style="display: flex; flex-wrap: wrap; gap: 15px;">
+            <label style="display: flex; align-items: center; gap: 8px;">
+              <input type="checkbox" checked>
+              Новые заявки
+            </label>
+            <label style="display: flex; align-items: center; gap: 8px;">
+              <input type="checkbox" checked>
+              Новые регистрации
+            </label>
+            <label style="display: flex; align-items: center; gap: 8px;">
+              <input type="checkbox">
+              Ежедневная статистика
+            </label>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <button type="submit" class="submit-btn">Сохранить настройки</button>
+        </div>
+      </form>
+    </div>
+  </section>

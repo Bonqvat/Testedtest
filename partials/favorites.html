@@ -1,0 +1,35 @@
+<main>
+  <div class="container">
+    <div class="section">
+      <h1>🛒 Корзина (<span id="cart-count">0</span>)</h1>
+      <div id="cart-items">
+        <div class="empty-message">Ваша корзина пуста</div>
+      </div>
+      <div class="summary-panel" id="cart-summary" style="display: none;">
+        <div class="summary-row">
+          <span>Товары:</span>
+          <span id="cart-subtotal">0 ₽</span>
+        </div>
+        <div class="summary-row">
+          <span>Доставка:</span>
+          <span>Бесплатно</span>
+        </div>
+        <div class="summary-row total-row">
+          <span>Итого:</span>
+          <span id="cart-total">0 ₽</span>
+        </div>
+        <button class="btn btn-primary checkout-btn" onclick="checkoutAll()">Оформить заказ</button>
+      </div>
+    </div>
+
+    <div class="section">
+      <h1>❤️ Избранное (<span id="favorites-count">0</span>)</h1>
+      <div id="favorites-items">
+        <div class="empty-message">У вас пока нет избранных товаров</div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- Уведомление -->
+<div class="notification" id="notification"></div>

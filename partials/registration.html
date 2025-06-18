@@ -1,0 +1,73 @@
+    <main>
+        <div class="registration-container">
+            <h2>Создать аккаунт</h2>
+            <form id="registrationForm">
+                <div class="form-group">
+                    <label for="email">Электронная почта *</label>
+                    <input type="text" id="register_email" name="email" placeholder="example@mail.com" required maxlength="50">
+                    <div class="error-message" id="emailError"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Пароль *</label>
+                    <input type="password" id="register_password" name="password" placeholder="Не менее 6 символов" required maxlength="20">
+                    <div class="error-message" id="passwordError"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="fio">Ф.И.О</label>
+                    <input type="text" id="register_fio" name="fio" placeholder="Иванов Иван" required maxlength="100">
+                    <div class="error-message" id="fioError"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="address">Адрес проживания *</label>
+                    <input type="text" id="register_address" name="address" placeholder="Город, улица, дом, квартира" required maxlength="150">
+                    <div class="error-message" id="addressError"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="phone">Контактный телефон *</label>
+                    <input type="tel" id="register_phone" name="phone" placeholder="+7 921 123-12-21" required maxlength="15">
+                    <div class="error-message" id="phoneError"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="how_did_you_know">Как вы узнали о нас?</label>
+                    <textarea id="how_did_you_know" name="how_did_you_know" placeholder="Расскажите, откуда вы о нас узнали (необязательно)" maxlength="200"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Ваше фото</label>
+                    <div class="file-input-container">
+                        <label for="photo" class="file-input-label">
+                            <i class="fas fa-upload"></i> Загрузить фото
+                        </label>
+                        <input type="file" id="photo" name="photo" accept="image/*" class="file-input">
+                        <div class="file-name" id="fileName"></div>
+                    </div>
+                    <p style="font-size: 12px; color: #6c757d; margin-top: 5px;">(необязательно, jpg/png до 5MB)</p>
+                </div>
+
+                <div class="checkbox-group">
+                    <input type="checkbox" id="newsletter" name="newsletter">
+                    <label for="newsletter">Я хочу получать рассылку на свой почтовый адрес</label>
+                </div>
+
+                <div class="checkbox-group">
+                    <input type="checkbox" id="consent" name="consent" required>
+                    <label for="consent">Я согласен на обработку персональных данных *</label>
+                    <div class="error-message" id="consentError"></div>
+                </div>
+
+                <button type="submit">Зарегистрироваться</button>
+            </form>
+        </div>
+    </main>
+
+    <div class="overlay" id="overlay"></div>
+    <div class="success-message" id="successMessage">
+        <h3>Регистрация завершена!</h3>
+        <p>Благодарим вас за регистрацию. На вашу электронную почту отправлено письмо с подтверждением.</p>
+        <button onclick="hideSuccessMessage()">Продолжить</button>
+    </div>

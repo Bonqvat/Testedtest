@@ -1,0 +1,108 @@
+  <section class="support-container">
+    <div class="support-header">
+      <h1>Служба поддержки</h1>
+      <p>Мы готовы помочь вам с любыми вопросами, связанными с нашими автомобилями и услугами. Выберите удобный способ связи.</p>
+    </div>
+    
+    <div class="support-options">
+      <div class="support-card">
+        <div class="support-icon">
+          <i class="fas fa-phone-alt"></i>
+        </div>
+        <h2>Телефонная поддержка</h2>
+        <p>Круглосуточная горячая линия для экстренных случаев и консультаций</p>
+        <a href="tel:+78001234567" class="support-btn">Позвонить</a>
+      </div>
+      
+      <div class="support-card">
+        <div class="support-icon">
+          <i class="fas fa-comments"></i>
+        </div>
+        <h2>Онлайн-чат</h2>
+        <p>Мгновенная помощь через онлайн-чат с нашими специалистами</p>
+        <a href="#" class="support-btn" id="openChat">Открыть чат</a>
+      </div>
+      
+      <div class="support-card">
+        <div class="support-icon">
+          <i class="fas fa-envelope"></i>
+        </div>
+        <h2>Электронная почта</h2>
+        <p>Отправьте нам письмо, и мы ответим в течение 24 часов</p>
+        <a href="mailto:support@futureauto.com" class="support-btn">Написать</a>
+      </div>
+    </div>
+    
+    <div class="faq-section">
+      <h2>Часто задаваемые вопросы</h2>
+      
+      <div class="faq-item">
+        <div class="faq-question">Как записаться на тест-драйв?</div>
+        <div class="faq-answer">
+          <p>Вы можете записаться на тест-драйв через наш сайт, выбрав понравившийся автомобиль и нажав кнопку "Запись на тест-драйв", либо позвонив по телефону +7 (8422) 56-34-89. Наш менеджер согласует с вами удобное время и место проведения тест-драйва.</p>
+        </div>
+      </div>
+      
+      <div class="faq-item">
+        <div class="faq-question">Какие документы нужны для покупки автомобиля?</div>
+        <div class="faq-answer">
+          <p>Для покупки автомобиля вам понадобится паспорт гражданина РФ. Если вы планируете оформлять кредит, дополнительно потребуется второй документ, удостоверяющий личность (водительское удостоверение, ИНН или СНИЛС), а также справка о доходах.</p>
+        </div>
+      </div>
+      
+      <div class="faq-item">
+        <div class="faq-question">Есть ли гарантия на автомобили?</div>
+        <div class="faq-answer">
+          <p>Все новые автомобили имеют официальную гарантию производителя сроком от 3 лет или 100 000 км пробега (в зависимости от того, что наступит раньше). На автомобили с пробегом мы предоставляем гарантию 1 год или 30 000 км пробега.</p>
+        </div>
+      </div>
+      
+      <div class="faq-item">
+        <div class="faq-question">Как узнать стоимость страховки?</div>
+        <div class="faq-answer">
+          <p>Наши менеджеры помогут вам рассчитать стоимость страховки КАСКО и ОСАГО для выбранного автомобиля. Расчет производится индивидуально с учетом ваших параметров (стаж вождения, возраст, история страховых случаев и др.).</p>
+        </div>
+      </div>
+      
+      <div class="faq-item">
+        <div class="faq-question">Можно ли обменять старый автомобиль на новый?</div>
+        <div class="faq-answer">
+          <p>Да, мы предоставляем услугу trade-in. Вы можете обменять ваш текущий автомобиль на новый с доплатой. Наши специалисты оценят состояние вашего автомобиля и предложат наилучшие условия обмена.</p>
+        </div>
+      </div>
+    </div>
+    
+    <div class="contact-form">
+      <h2>Форма обратной связи</h2>
+      <form id="supportForm">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="support-name">Ваше имя</label>
+            <input type="text" id="support-name" required>
+          </div>
+          <div class="form-group">
+            <label for="support-phone">Телефон</label>
+            <input type="tel" id="support-phone" required>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label for="support-subject">Тема обращения</label>
+          <select id="support-subject">
+            <option value="question">Общий вопрос</option>
+            <option value="test-drive">Запись на тест-драйв</option>
+            <option value="service">Сервисное обслуживание</option>
+            <option value="warranty">Гарантийный случай</option>
+            <option value="other">Другое</option>
+          </select>
+        </div>
+        
+        <div class="form-group">
+          <label for="support-message">Ваше сообщение</label>
+          <textarea id="support-message" required></textarea>
+        </div>
+        
+        <button type="submit" class="submit-btn">Отправить запрос</button>
+      </form>
+    </div>
+  </section>
