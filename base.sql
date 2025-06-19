@@ -35,5 +35,6 @@ CREATE TABLE users (
     phone VARCHAR(20),
     address TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    last_login TIMESTAMP
+    last_login TIMESTAMP,
+    is_admin BOOLEAN
 );
