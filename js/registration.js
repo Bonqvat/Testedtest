@@ -67,7 +67,8 @@ function initRegistrationPage() {
 
         // Валидация адреса
         const addressInput = document.getElementById('register_address');
-        if (addressInput.value.trim().length < 5) {
+        const address = addressInput.value.trim();
+        if (address.length < 5) {
             showError('addressError', 'Введите адрес');
             addressInput.classList.add('input-error');
             isValid = false;
@@ -97,21 +98,42 @@ function initRegistrationPage() {
             hideError('consentError');
         }
 
-        // Сохранение данных
+        // Отправка данных на сервер
         if (isValid) {
-            const userData = {
-                email,
-                fio,
-                address: addressInput.value,
-                phone,
-                newsletter: document.getElementById('newsletter').checked
-            };
+            // Скрываем предыдущие ошибки
+            hideError('generalError');
 
-            const appState = JSON.parse(localStorage.getItem('futureAutoState')) || {};
-            appState.user = userData;
-            localStorage.setItem('futureAutoState', JSON.stringify(appState));
-            
-            showSuccessMessage();
+            // Отправляем на сервер
+            fetch('script.php?action=registerUser', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    email: email,
+                    password: password,
+                    name: fio,
+                    phone: phone,
+                    address: address
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    // Показываем ошибку сервера
+                    showError('generalError', data.error);
+                } else {
+                    // Сохраняем только ID пользователя
+                    const appState = JSON.parse(localStorage.getItem('futureAutoState')) || {};
+                    appState.user = { id: data.userId };
+                    localStorage.setItem('futureAutoState', JSON.stringify(appState));
+                    
+                    showSuccessMessage();
+                }
+            })
+            .catch(error => {
+                showError('generalError', 'Ошибка сети. Попробуйте позже.');
+            });
         }
     }
 

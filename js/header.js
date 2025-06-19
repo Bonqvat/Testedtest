@@ -151,7 +151,7 @@ window.closeModal = function(modalId) {
   }
 };
 
-window.handleLogin = function(e) {
+window.handleLogin = function() {
   const emailInput = document.getElementById('email');
   const passwordInput = document.getElementById('password');
   
@@ -165,45 +165,44 @@ window.handleLogin = function(e) {
     return;
   }
   
-  let state = JSON.parse(localStorage.getItem('futureAutoState')) || {
-    user: null,
-    cart: [],
-    favorites: [],
-    adminUsers: [
-      { email: 'admin@futureauto.com', password: 'admin123' }
-    ]
-  };
-  
-  // Проверка на администратора
-  const adminUser = state.adminUsers.find(u => u.email === email && u.password === password);
-  
-  if (adminUser) {
-    state.user = { 
-      email,
-      name: 'Администратор',
-      isAdmin: true,
-      joinDate: new Date().toLocaleDateString()
-    };
-    localStorage.setItem('futureAutoState', JSON.stringify(state));
-    
-    closeModal('loginModal');
-    updateAuthUI();
-    showNotification('Вы вошли как администратор');
-    return;
-  }
-  
-  // Обычный пользователь
-  state.user = { 
-    email,
-    name: email.split('@')[0],
-    joinDate: new Date().toLocaleDateString()
-  };
-  
-  localStorage.setItem('futureAutoState', JSON.stringify(state));
-  
-  closeModal('loginModal');
-  updateAuthUI();
-  showNotification(`Добро пожаловать, ${state.user.name}!`);
+  // Отправляем запрос на сервер для аутентификации
+  fetch('script.php?action=loginUser', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ email, password })
+  })
+  .then(response => {
+    if (!response.ok) {
+      throw new Error('Ошибка сети');
+    }
+    return response.json();
+  })
+  .then(data => {
+    if (data.error) {
+      showNotification(data.error, 'error');
+    } else {
+      // Сохраняем минимальные данные пользователя
+      const state = JSON.parse(localStorage.getItem('futureAutoState')) || {};
+      state.user = {
+        id: data.user.id,
+        email: data.user.email,
+        name: data.user.name || email.split('@')[0],
+        isAdmin: data.user.isAdmin || false,
+        joinDate: new Date().toLocaleDateString()
+      };
+      
+      localStorage.setItem('futureAutoState', JSON.stringify(state));
+      
+      closeModal('loginModal');
+      updateAuthUI();
+      showNotification(`Добро пожаловать, ${state.user.name}!`);
+    }
+  })
+  .catch(error => {
+    showNotification('Ошибка сети: ' + error.message, 'error');
+  });
 };
 
 window.logout = function() {
@@ -217,7 +216,7 @@ window.logout = function() {
 };
 
 function showNotification(message, type = 'success') {
-  // Здесь можно реализовать красивые уведомления
+  // Временная реализация через alert
   alert(message);
 }
 
