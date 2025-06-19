@@ -38,3 +38,17 @@ CREATE TABLE users (
     last_login TIMESTAMP,
     is_admin BOOLEAN
 );
+
+CREATE TABLE user_cart (
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    car_id INTEGER NOT NULL REFERENCES cars(id),
+    added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (user_id, car_id)
+);
+
+CREATE TABLE user_favorites (
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    car_id INTEGER NOT NULL REFERENCES cars(id),
+    added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (user_id, car_id)
+);
