@@ -221,7 +221,7 @@ nav a.active {
   text-decoration: underline;
 }
 
-.btn {
+.login-btn {
   display: block;
   padding: 12px;
   border-radius: 8px;
