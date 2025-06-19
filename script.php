@@ -33,8 +33,26 @@ switch ($action) {
     case 'loginUser':
         loginUser($pdo);
         break;
-    case 'registerUser': // Добавлен новый обработчик
+    case 'registerUser':
         registerUser($pdo);
+        break;
+    case 'addToCart':
+        addToCart($pdo);
+        break;
+    case 'removeFromCart':
+        removeFromCart($pdo);
+        break;
+    case 'getCart':
+        getCart($pdo);
+        break;
+    case 'addToFavorites':
+        addToFavorites($pdo);
+        break;
+    case 'removeFromFavorites':
+        removeFromFavorites($pdo);
+        break;
+    case 'getFavorites':
+        getFavorites($pdo);
         break;
     default:
         echo json_encode(['error' => 'Invalid action']);
@@ -201,7 +219,6 @@ function loginUser($pdo) {
     }
 }
 
-// Новая функция для регистрации пользователя
 function registerUser($pdo) {
     $data = json_decode(file_get_contents('php://input'), true);
     
@@ -241,7 +258,7 @@ function registerUser($pdo) {
 
         echo json_encode(['success' => true, 'userId' => $userId]);
     } catch (PDOException $e) {
-        // Обработка ошибки дубликата (хотя мы уже проверили выше)
+        // Обработка ошибки дубликата
         if ($e->getCode() == 23505) {
             echo json_encode(['error' => 'Email already registered']);
         } else {
@@ -249,4 +266,121 @@ function registerUser($pdo) {
         }
     }
 }
-?>
+
+// Функции для работы с корзиной
+function addToCart($pdo) {
+    if (!isset($_SESSION['user_id'])) {
+        echo json_encode(['error' => 'Not authorized']);
+        return;
+    }
+
+    $data = json_decode(file_get_contents('php://input'), true);
+    $carId = $data['carId'] ?? 0;
+    $userId = $_SESSION['user_id'];
+    
+    try {
+        $stmt = $pdo->prepare("
+            INSERT INTO user_cart (user_id, car_id) 
+            VALUES (?, ?)
+            ON CONFLICT (user_id, car_id) DO NOTHING
+        ");
+        $stmt->execute([$userId, $carId]);
+        echo json_encode(['success' => true]);
+    } catch (PDOException $e) {
+        echo json_encode(['error' => $e->getMessage()]);
+    }
+}
+
+function removeFromCart($pdo) {
+    if (!isset($_SESSION['user_id'])) {
+        echo json_encode(['error' => 'Not authorized']);
+        return;
+    }
+
+    $data = json_decode(file_get_contents('php://input'), true);
+    $carId = $data['carId'] ?? 0;
+    $userId = $_SESSION['user_id'];
+
+    try {
+        $stmt = $pdo->prepare("DELETE FROM user_cart WHERE user_id = ? AND car_id = ?");
+        $stmt->execute([$userId, $carId]);
+        echo json_encode(['success' => true]);
+    } catch (PDOException $e) {
+        echo json_encode(['error' => $e->getMessage()]);
+    }
+}
+
+function getCart($pdo) {
+    if (!isset($_SESSION['user_id'])) {
+        echo json_encode(['error' => 'Not authorized']);
+        return;
+    }
+    $userId = $_SESSION['user_id'];
+    try {
+        $stmt = $pdo->prepare("SELECT car_id FROM user_cart WHERE user_id = ?");
+        $stmt->execute([$userId]);
+        $cart = $stmt->fetchAll(PDO::FETCH_COLUMN);
+        echo json_encode($cart);
+    } catch (PDOException $e) {
+        echo json_encode(['error' => $e->getMessage()]);
+    }
+}
+
+// Функции для работы с избранным
+function addToFavorites($pdo) {
+    if (!isset($_SESSION['user_id'])) {
+        echo json_encode(['error' => 'Not authorized']);
+        return;
+    }
+
+    $data = json_decode(file_get_contents('php://input'), true);
+    $carId = $data['carId'] ?? 0;
+    $userId = $_SESSION['user_id'];
+
+    try {
+        $stmt = $pdo->prepare("
+            INSERT INTO favorites (user_id, car_id) 
+            VALUES (?, ?)
+            ON CONFLICT (user_id, car_id) DO NOTHING
+        ");
+        $stmt->execute([$userId, $carId]);
+        echo json_encode(['success' => true]);
+    } catch (PDOException $e) {
+        echo json_encode(['error' => $e->getMessage()]);
+    }
+}
+
+function removeFromFavorites($pdo) {
+    if (!isset($_SESSION['user_id'])) {
+        echo json_encode(['error' => 'Not authorized']);
+        return;
+    }
+
+    $data = json_decode(file_get_contents('php://input'), true);
+    $carId = $data['carId'] ?? 0;
+    $userId = $_SESSION['user_id'];
+
+    try {
+        $stmt = $pdo->prepare("DELETE FROM favorites WHERE user_id = ? AND car_id = ?");
+        $stmt->execute([$userId, $carId]);
+        echo json_encode(['success' => true]);
+    } catch (PDOException $e) {
+        echo json_encode(['error' => $e->getMessage()]);
+    }
+}
+
+function getFavorites($pdo) {
+    if (!isset($_SESSION['user_id'])) {
+        echo json_encode(['error' => 'Not authorized']);
+        return;
+    }
+    $userId = $_SESSION['user_id'];
+    try {
+        $stmt = $pdo->prepare("SELECT car_id FROM favorites WHERE user_id = ?");
+        $stmt->execute([$userId]);
+        $favorites = $stmt->fetchAll(PDO::FETCH_COLUMN);
+        echo json_encode($favorites);
+    } catch (PDOException $e) {
+        echo json_encode(['error' => $e->getMessage()]);
+    }
+}

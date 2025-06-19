@@ -1,28 +1,69 @@
 import { cars } from '/data/data.js';
 
 const state = {
+  user: null,
   cart: [],
   favorites: []
 };
 
-function initFavoritesPage() {
+async function initFavoritesPage() {
+  // Проверяем сохраненное состояние
   const savedState = localStorage.getItem('futureAutoState');
   if (savedState) {
     const stateObj = JSON.parse(savedState);
-    if (!stateObj.user) {
-      alert('Пожалуйста, войдите в систему');
-      loadPage('index');
-      return;
-    }
+    state.user = stateObj.user;
     state.cart = stateObj.cart || [];
     state.favorites = stateObj.favorites || [];
   }
-  renderCart(); 
-  renderFavorites();
-  updateHeaderCounters();
+
+  if (!state.user) {
+    alert('Пожалуйста, войдите в систему');
+    loadPage('index');
+    return;
+  }
+
+  try {
+    const [cart, favorites] = await Promise.all([
+      fetchCart(),
+      fetchFavorites()
+    ]);
+    
+    // Обновляем состояние актуальными данными с сервера
+    state.cart = cart;
+    state.favorites = favorites;
+    
+    // Сохраняем обновленное состояние
+    saveState();
+    
+    renderCart(); 
+    renderFavorites();
+    updateHeaderCounters();
+  } catch (error) {
+    showNotification(`Ошибка загрузки: ${error.message}`, 'error');
+    
+    // В случае ошибки используем данные из localStorage
+    renderCart();
+    renderFavorites();
+    updateHeaderCounters();
+  }
 }
 
-// Восстановленная функция отображения корзины
+// Функции получения данных с сервера
+async function fetchCart() {
+  const response = await fetch('script.php?action=getCart');
+  const data = await response.json();
+  if (data.error) throw new Error(data.error);
+  return data;
+}
+
+async function fetchFavorites() {
+  const response = await fetch('script.php?action=getFavorites');
+  const data = await response.json();
+  if (data.error) throw new Error(data.error);
+  return data;
+}
+
+// Отображение корзины
 function renderCart() {
   const cartItemsContainer = document.getElementById('cart-items');
   const cartSummary = document.getElementById('cart-summary');
@@ -71,21 +112,32 @@ function renderCart() {
   document.getElementById('cart-count').textContent = state.cart.length;
 }
 
-// Функция удаления из корзины
-function removeFromCart(productId) {
-  state.cart = state.cart.filter(id => id !== productId);
-  saveState();
-  renderCart();
-  updateHeaderCounters();
-  
-  const car = cars.find(c => c.id == productId);
-  if (car) {
-    showNotification(`${car.brand} ${car.model} удален из корзины`);
-  } else {
-    showNotification(`Товар удален из корзины`);
+// Удаление из корзины
+async function removeFromCart(productId) {
+  try {
+    await fetch('script.php?action=removeFromCart', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ carId: productId })
+    });
+
+    state.cart = state.cart.filter(id => id !== productId);
+    saveState();
+    renderCart();
+    updateHeaderCounters();
+    
+    const car = cars.find(c => c.id == productId);
+    if (car) {
+      showNotification(`${car.brand} ${car.model} удален из корзины`);
+    } else {
+      showNotification(`Товар удален из корзины`);
+    }
+  } catch (error) {
+    showNotification(`Ошибка: ${error.message}`, 'error');
   }
 }
 
+// Отображение избранного
 function renderFavorites() {
   const favoritesContainer = document.getElementById('favorites-items');
   if (!favoritesContainer) return;
@@ -122,6 +174,7 @@ function renderFavorites() {
   document.getElementById('favorites-count').textContent = state.favorites.length;
 }
 
+// Обновление счетчиков в шапке
 function updateHeaderCounters() {
   const cartIcon = document.querySelector('.icons .fa-shopping-cart');
   const favIcon = document.querySelector('.icons .fa-star');
@@ -141,6 +194,7 @@ function updateHeaderCounters() {
   }
 }
 
+// Форматирование цены
 function formatPrice(price) {
   return new Intl.NumberFormat('ru-RU', { 
     style: 'currency', 
@@ -149,10 +203,19 @@ function formatPrice(price) {
   }).format(price);
 }
 
-function addToCart(productId) {
-  if (!state.cart.includes(productId)) {
-    state.cart.push(productId);
-    saveState();
+// Добавление в корзину
+async function addToCart(productId) {
+  try {
+    await fetch('script.php?action=addToCart', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ carId: productId })
+    });
+    
+    if (!state.cart.includes(productId)) {
+      state.cart.push(productId);
+      saveState();
+    }
     
     const car = cars.find(c => c.id == productId);
     if (car) {
@@ -162,31 +225,52 @@ function addToCart(productId) {
     }
     
     updateHeaderCounters();
-    renderCart(); // Обновляем отображение корзины
+    renderCart();
+  } catch (error) {
+    showNotification(`Ошибка: ${error.message}`, 'error');
   }
 }
 
-function removeFromFavorites(productId) {
-  state.favorites = state.favorites.filter(id => id !== productId);
-  saveState();
-  renderFavorites();
-  updateHeaderCounters();
-  showNotification(`Товар удален из избранного`);
+// Удаление из избранного
+async function removeFromFavorites(productId) {
+  try {
+    await fetch('script.php?action=removeFromFavorite', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ carId: productId })
+    });
+
+    state.favorites = state.favorites.filter(id => id !== productId);
+    saveState();
+    renderFavorites();
+    updateHeaderCounters();
+    showNotification(`Товар удален из избранного`);
+  } catch (error) {
+    showNotification(`Ошибка: ${error.message}`, 'error');
+  }
 }
 
+// Сохранение состояния в localStorage
 function saveState() {
-  const appState = JSON.parse(localStorage.getItem('futureAutoState')) || {};
-  appState.cart = state.cart;
-  appState.favorites = state.favorites;
+  const appState = {
+    user: state.user,
+    cart: state.cart,
+    favorites: state.favorites
+  };
   localStorage.setItem('futureAutoState', JSON.stringify(appState));
 }
 
-function showNotification(message) {
+// Показ уведомлений
+function showNotification(message, type = 'success') {
   const notification = document.getElementById('notification');
   if (!notification) return;
+  
   notification.textContent = message;
-  notification.classList.add('show');
-  setTimeout(() => notification.classList.remove('show'), 3000);
+  notification.className = 'notification show ' + type;
+  
+  setTimeout(() => {
+    notification.classList.remove('show');
+  }, 3000);
 }
 
 window.initFavoritesPage = initFavoritesPage;

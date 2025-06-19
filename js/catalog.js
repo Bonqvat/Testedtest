@@ -6,92 +6,163 @@ const itemsPerPage = 8;
 
 // Основной массив автомобилей (будет загружаться из БД)
 let cars = [];
+let carData = []; // Для автодополнения поиска
+let currentFilteredCars = []; // Для хранения текущих отфильтрованных автомобилей
 
 // Основная функция инициализации каталога (асинхронная)
 async function initCatalogPage() {
   await loadCarsFromDB(); // Загружаем автомобили из БД
-  populateBrandFilter();
-  renderCatalog(cars);
-  updateFilterOptions(cars);
+  currentFilteredCars = [...cars]; // Инициализируем отфильтрованный массив
+  populateBrandFilter(); // Инициализируем фильтр марок
+  setupEventListeners(); // Настраиваем обработчики событий
   initPriceSlider();
+  
+  // Парсим параметры URL
+  const urlParams = new URLSearchParams(window.location.search);
+  const brand = urlParams.get('brand');
+  const model = urlParams.get('model');
+  const maxPrice = urlParams.get('maxPrice');
+  const bodyType = urlParams.get('bodyType');
+
+  // Устанавливаем параметры в фильтры
+  if (brand) {
+    document.getElementById('brandSelect').value = brand.toLowerCase();
+    updateModels(false); // Обновляем модели без фильтрации
+  }
+  
+  if (model) {
+    document.getElementById('modelSelect').value = model.toLowerCase();
+  }
+  
+  if (maxPrice) {
+    document.getElementById('maxPrice').value = maxPrice;
+  }
+  
+  if (bodyType) {
+    document.getElementById('bodyTypeSelect').value = bodyType;
+  }
+  
+  // Применяем фильтры
+  filterCars();
   updatePagination();
   updateHeaderCounters();
-  applyUrlFilters();
-  
-  // Обработчики событий для фильтров
-  document.getElementById('filterToggle').addEventListener('click', function(e) {
+}
+
+function setupEventListeners() {
+  // Обработчики для фильтров
+  document.getElementById('filterToggle')?.addEventListener('click', function(e) {
     e.stopPropagation();
     const panel = document.getElementById('filtersPanel');
-    panel.style.display = panel.style.display === 'flex' ? 'none' : 'flex';
+    if (panel) {
+      panel.style.display = panel.style.display === 'flex' ? 'none' : 'flex';
+    }
   });
-  
+
   // Закрытие фильтров при клике вне их
   document.addEventListener('click', function(e) {
     const panel = document.getElementById('filtersPanel');
     const button = document.getElementById('filterToggle');
     
-    if (!panel.contains(e.target) && !button.contains(e.target)) {
+    if (panel && button && !panel.contains(e.target) && !button.contains(e.target)) {
       panel.style.display = 'none';
     }
   });
-  
+
   // Обработчик поиска
-  document.getElementById('search').addEventListener('input', function() {
-    showSuggestions(this.value);
-  });
-  
+  const searchInput = document.getElementById('search');
+  if (searchInput) {
+    searchInput.addEventListener('input', function() {
+      showSuggestions(this.value);
+    });
+  }
+
   // Обработчик кнопки поиска
-  document.getElementById('searchButton').addEventListener('click', performSearch);
-  
+  const searchButton = document.querySelector('.search-btn');
+  if (searchButton) {
+    searchButton.addEventListener('click', performSearch);
+  }
+
   // Обработчики для слайдера цен
-  document.getElementById('priceSlider').addEventListener('input', updatePriceInputs);
-  document.getElementById('minPrice').addEventListener('change', updatePriceSlider);
-  document.getElementById('maxPrice').addEventListener('change', filterCars);
-  
-  // Обработчики для сброса фильтров
-  document.getElementById('resetFilters').addEventListener('click', function() {
-    document.getElementById('brandSelect').value = '';
-    document.getElementById('modelSelect').innerHTML = '<option value="" selected>Сначала выберите марку</option>';
-    document.getElementById('modelSelect').disabled = true;
-    document.getElementById('yearSelect').value = '';
-    document.getElementById('bodyTypeSelect').value = '';
-    document.getElementById('driveTypeSelect').value = '';
-    document.getElementById('powerSelect').value = '';
-    resetPriceFilter();
-    document.getElementById('search').value = '';
-    filterCars();
+  const priceSlider = document.getElementById('priceSlider');
+  if (priceSlider) {
+    priceSlider.addEventListener('input', updatePriceInputs);
+  }
+
+  const minPriceInput = document.getElementById('minPrice');
+  if (minPriceInput) {
+    minPriceInput.addEventListener('change', updatePriceSlider);
+  }
+
+  const maxPriceInput = document.getElementById('maxPrice');
+  if (maxPriceInput) {
+    maxPriceInput.addEventListener('change', filterCars);
+  }
+
+  // Обработчики для кнопки "Применить фильтры"
+  const applyFiltersBtn = document.querySelector('.apply-filters');
+  if (applyFiltersBtn) {
+    applyFiltersBtn.addEventListener('click', applyFilters);
+  }
+
+  // Обработчик изменения марки
+  const brandSelect = document.getElementById('brandSelect');
+  if (brandSelect) {
+    brandSelect.addEventListener('change', updateModels);
+  }
+
+  // Обработчик изменения типа кузова
+  const bodyTypeSelect = document.getElementById('bodyTypeSelect');
+  if (bodyTypeSelect) {
+    bodyTypeSelect.addEventListener('change', filterByBodyType);
+  }
+
+  // Обработчики для кнопок сброса фильтров
+  document.querySelectorAll('.reset-filter').forEach(button => {
+    button.addEventListener('click', function() {
+      const filterId = this.dataset.filter;
+      resetFilter(filterId);
+    });
   });
+
+  // Обработчик для кнопки сброса ценового фильтра
+  const resetPriceBtn = document.querySelector('.reset-price-filter');
+  if (resetPriceBtn) {
+    resetPriceBtn.addEventListener('click', resetPriceFilter);
+  }
 }
 
 // Загрузка автомобилей из БД
 async function loadCarsFromDB() {
   try {
-    // Изменено: запрос к script.php вместо ajax.php
     const response = await fetch('script.php?action=getCars');
     const data = await response.json();
     
     if (Array.isArray(data)) {
-      // Преобразование JSONB-полей в массивы
       cars = data.map(car => ({
         ...car,
         features: car.features ? JSON.parse(car.features) : [],
-        images: car.images ? JSON.parse(car.images) : []
+        images: car.images ? JSON.parse(car.images) : [],
+        power: parseInt(car.power) || 0 // Преобразование мощности в число
       }));
+      
+      // Создаем список автомобилей для автодополнения
+      carData = cars.map(car => `${car.brand} ${car.model}`);
     } else {
       console.error('Invalid data format:', data);
-      // Можно добавить fallback на локальные данные или уведомление
     }
   } catch (error) {
     console.error('Error loading cars:', error);
-    // Обработка ошибки (например, показ сообщения пользователю)
   }
 }
 
 // Заполнение фильтра брендами
 function populateBrandFilter() {
   const brandSelect = document.getElementById('brandSelect');
+  if (!brandSelect) return;
+  
   brandSelect.innerHTML = '<option value="" selected>Все марки</option>';
   
+  // Используем реальные марки из данных
   brands.forEach(brand => {
     const option = document.createElement('option');
     option.value = brand.toLowerCase();
@@ -100,38 +171,45 @@ function populateBrandFilter() {
   });
 }
 
-// Загрузка автомобилей при загрузке страницы
-document.addEventListener('DOMContentLoaded', async function() {
-  await initCatalogPage();
-});
-
 // Инициализация слайдера цен
 function initPriceSlider() {
   const minPrice = document.getElementById('minPrice');
   const maxPrice = document.getElementById('maxPrice');
   const priceSlider = document.getElementById('priceSlider');
   
-  // Установка минимального и максимального значений
-  const min = 0;
-  const max = 10000000;
+  if (!minPrice || !maxPrice || !priceSlider) return;
   
-  minPrice.min = min;
-  minPrice.max = max;
-  maxPrice.min = min;
-  maxPrice.max = max;
+  // Рассчитываем мин/макс цену из данных
+  const min = Math.min(...cars.map(car => car.price));
+  const max = Math.max(...cars.map(car => car.price));
   
-  priceSlider.min = min;
-  priceSlider.max = max;
+  // Защита от пустого массива
+  const safeMin = isFinite(min) ? min : 0;
+  const safeMax = isFinite(max) ? max : 10000000;
+  
+  minPrice.min = safeMin;
+  minPrice.max = safeMax;
+  minPrice.value = safeMin;
+  minPrice.placeholder = `от ${safeMin.toLocaleString()}`;
+  
+  maxPrice.min = safeMin;
+  maxPrice.max = safeMax;
+  maxPrice.value = safeMax;
+  maxPrice.placeholder = `до ${safeMax.toLocaleString()}`;
+  
+  priceSlider.min = safeMin;
+  priceSlider.max = safeMax;
+  priceSlider.value = safeMin;
 }
 
 // Обновление полей ввода при изменении слайдера
 function updatePriceInputs() {
   const priceSlider = document.getElementById('priceSlider');
   const minPrice = document.getElementById('minPrice');
-  const maxPrice = document.getElementById('maxPrice');
+  
+  if (!priceSlider || !minPrice) return;
   
   minPrice.value = priceSlider.value;
-  maxPrice.value = priceSlider.max;
   filterCars();
 }
 
@@ -140,6 +218,8 @@ function updatePriceSlider() {
   const minPrice = document.getElementById('minPrice');
   const priceSlider = document.getElementById('priceSlider');
   
+  if (!minPrice || !priceSlider) return;
+  
   priceSlider.value = minPrice.value;
   filterCars();
 }
@@ -147,9 +227,11 @@ function updatePriceSlider() {
 // Функция отрисовки каталога
 function renderCatalog(carsToShow) {
   const carGrid = document.getElementById('carGrid');
+  if (!carGrid) return;
+  
   carGrid.innerHTML = '';
   
-  if (carsToShow.length === 0) {
+  if (!carsToShow || carsToShow.length === 0) {
     carGrid.innerHTML = '<p style="grid-column: 1/-1; text-align: center;">Автомобили по вашему запросу не найдены</p>';
     return;
   }
@@ -163,8 +245,7 @@ function renderCatalog(carsToShow) {
     carCard.className = 'car-card';
     carCard.style.animationDelay = `${0.1 * index}s`;
     
-    // Изменено: использование первого изображения из массива
-    const imageUrl = car.images.length > 0 ? car.images[0] : 'no-image.jpg';
+    const imageUrl = car.images.length > 0 ? car.images[0] : 'images/no-image.jpg';
     
     carCard.innerHTML = `
       <div class="car-status">${car.status}</div>
@@ -183,9 +264,10 @@ function renderCatalog(carsToShow) {
         <button class="details-btn">Подробнее</button>
       </div>
     `;
-    carCard.querySelector('.favorite-btn').addEventListener('click', () => addToFavorites(car.id));
-    carCard.querySelector('.cart-btn').addEventListener('click', () => addToCart(car.id));
-    carCard.querySelector('.details-btn').addEventListener('click', () => showCarDetails(car.id));
+    
+    carCard.querySelector('.favorite-btn')?.addEventListener('click', () => addToFavorites(car.id));
+    carCard.querySelector('.cart-btn')?.addEventListener('click', () => addToCart(car.id));
+    carCard.querySelector('.details-btn')?.addEventListener('click', () => showCarDetails(car.id));
     
     carGrid.appendChild(carCard);
   });
@@ -205,8 +287,10 @@ function addToFavorites(carId) {
       
       // Анимация иконки
       const favIcon = document.getElementById('favorites-icon');
-      favIcon.classList.add('bounce-animation');
-      setTimeout(() => favIcon.classList.remove('bounce-animation'), 500);
+      if (favIcon) {
+        favIcon.classList.add('bounce-animation');
+        setTimeout(() => favIcon.classList.remove('bounce-animation'), 500);
+      }
       
       updateHeaderCounters();
       showNotification(`Автомобиль ${car.brand} ${car.model} добавлен в избранное!`);
@@ -228,8 +312,10 @@ function addToCart(carId) {
       
       // Анимация иконки
       const cartIcon = document.getElementById('cart-icon');
-      cartIcon.classList.add('bounce-animation');
-      setTimeout(() => cartIcon.classList.remove('bounce-animation'), 500);
+      if (cartIcon) {
+        cartIcon.classList.add('bounce-animation');
+        setTimeout(() => cartIcon.classList.remove('bounce-animation'), 500);
+      }
       
       updateHeaderCounters();
       showNotification(`Автомобиль ${car.brand} ${car.model} добавлен в корзину!`);
@@ -241,13 +327,10 @@ function addToCart(carId) {
 
 // Переход на страницу автомобиля
 function showCarDetails(carId) {
-  // Сохраняем ID автомобиля в localStorage
   const state = JSON.parse(localStorage.getItem('futureAutoState')) || {};
   state.currentCarId = carId;
   localStorage.setItem('futureAutoState', JSON.stringify(state));
-  
-  // Переходим на страницу автомобиля
-  window.location.href = '#car-page';
+  window.location.href = `car-details.html?id=${carId}`;
 }
 
 // Функция для обновления доступных опций в селектах
@@ -255,77 +338,107 @@ function updateFilterOptions(filteredCars) {
   // Обновляем модели
   const brandSelect = document.getElementById('brandSelect');
   const modelSelect = document.getElementById('modelSelect');
+  
+  if (!brandSelect || !modelSelect) return;
+  
   const selectedBrand = brandSelect.value.toLowerCase();
   
-  if (selectedBrand) {
+  if (selectedBrand && modelsByBrand[selectedBrand]) {
     modelSelect.innerHTML = '<option value="" selected>Выберите модель</option>';
+    modelSelect.disabled = false;
+    
     modelsByBrand[selectedBrand].forEach(model => {
       const option = document.createElement('option');
-      option.value = model.name.toLowerCase();
-      option.textContent = model.name;
-      option.dataset.image = model.image;
+      option.value = model.toLowerCase();
+      option.textContent = model;
       modelSelect.appendChild(option);
     });
+  } else {
+    modelSelect.innerHTML = '<option value="" selected>Сначала выберите марку</option>';
+    modelSelect.disabled = true;
   }
   
   // Обновляем годы выпуска
   const yearSelect = document.getElementById('yearSelect');
-  const availableYears = [...new Set(filteredCars.map(car => car.year))].sort((a, b) => b - a);
-  yearSelect.innerHTML = '<option value="" selected>Любой</option>';
-  availableYears.forEach(year => {
-    const option = document.createElement('option');
-    option.value = year;
-    option.textContent = year;
-    yearSelect.appendChild(option);
-  });
+  if (yearSelect) {
+    const availableYears = [...new Set(filteredCars.map(car => car.year))].sort((a, b) => b - a);
+    yearSelect.innerHTML = '<option value="" selected>Любой</option>';
+    availableYears.forEach(year => {
+      const option = document.createElement('option');
+      option.value = year;
+      option.textContent = year;
+      yearSelect.appendChild(option);
+    });
+  }
   
   // Обновляем типы привода
   const driveSelect = document.getElementById('driveTypeSelect');
-  const availableDrives = [...new Set(filteredCars.map(car => car.drive))];
-  driveSelect.innerHTML = '<option value="" selected>Любой</option>';
-  availableDrives.forEach(drive => {
-    const option = document.createElement('option');
-    option.value = drive;
-    option.textContent = 
-      drive === 'front' ? 'Передний' : 
-      drive === 'rear' ? 'Задний' : 'Полный';
-    driveSelect.appendChild(option);
-  });
+  if (driveSelect) {
+    const availableDrives = [...new Set(filteredCars.map(car => car.drive))];
+    driveSelect.innerHTML = '<option value="" selected>Любой</option>';
+    availableDrives.forEach(drive => {
+      const option = document.createElement('option');
+      option.value = drive;
+      option.textContent = 
+        drive === 'front' ? 'Передний' : 
+        drive === 'rear' ? 'Задний' : 'Полный';
+      driveSelect.appendChild(option);
+    });
+    
+    // Проверяем текущее значение и сбрасываем, если оно недоступно
+    const currentValue = driveSelect.value;
+    const isValid = availableDrives.includes(currentValue) || currentValue === '';
+    if (!isValid) {
+      driveSelect.value = '';
+    }
+  }
   
-  // Обновляем диапазон мощностей
+  // Обновляем опции мощности
   const powerSelect = document.getElementById('powerSelect');
-  powerSelect.innerHTML = `
-    <option value="" selected>Любая</option>
-    <option value="50">До 50</option>
-    <option value="100">50-100</option>
-    <option value="150">100-150</option>
-    <option value="200">150-200</option>
-    <option value="300">200-300</option>
-    <option value="500">300-500</option>
-    <option value="750">500-750</option>
-    <option value="1000">750-1000</option>
-    <option value="1001">1000+</option>
-  `;
+  if (powerSelect) {
+    const powerRanges = [
+      { value: 50, label: "до 50 л.с." },
+      { value: 100, label: "51-100 л.с." },
+      { value: 150, label: "101-150 л.с." },
+      { value: 200, label: "151-200 л.с." },
+      { value: 300, label: "201-300 л.с." },
+      { value: 500, label: "301-500 л.с." },
+      { value: 750, label: "501-750 л.с." },
+      { value: 1000, label: "751-1000 л.с." },
+      { value: 1001, label: "более 1000 л.с." }
+    ];
+    
+    powerSelect.innerHTML = '<option value="" selected>Любая</option>';
+    powerRanges.forEach(range => {
+      const option = document.createElement('option');
+      option.value = range.value;
+      option.textContent = range.label;
+      powerSelect.appendChild(option);
+    });
+  }
   
   // Обновляем ценовой диапазон
   const minPriceInput = document.getElementById('minPrice');
   const maxPriceInput = document.getElementById('maxPrice');
   const priceSlider = document.getElementById('priceSlider');
-  const minPrice = Math.min(...filteredCars.map(car => car.price));
-  const maxPrice = Math.max(...filteredCars.map(car => car.price));
   
-  minPriceInput.min = minPrice;
-  minPriceInput.placeholder = `от ${minPrice.toLocaleString()}`;
-  maxPriceInput.placeholder = `до ${maxPrice.toLocaleString()}`;
-  priceSlider.min = minPrice;
-  priceSlider.max = maxPrice;
+  if (minPriceInput && maxPriceInput && priceSlider && filteredCars.length > 0) {
+    const minPrice = Math.min(...filteredCars.map(car => car.price));
+    const maxPrice = Math.max(...filteredCars.map(car => car.price));
+    
+    minPriceInput.min = minPrice;
+    minPriceInput.placeholder = `от ${minPrice.toLocaleString()}`;
+    maxPriceInput.placeholder = `до ${maxPrice.toLocaleString()}`;
+    priceSlider.min = minPrice;
+    priceSlider.max = maxPrice;
+  }
 }
 
 // Автодополнение поиска
-const carData = ["Toyota Camry", "Audi A6", "Skoda Superb", "BMW X5", "Toyota RAV4", "Audi Q5", "BMW 3 Series", "Skoda Octavia"];
-
 function showSuggestions(value) {
   const suggestions = document.getElementById('suggestions');
+  if (!suggestions) return;
+  
   suggestions.innerHTML = '';
   if (!value) return;
   
@@ -346,25 +459,28 @@ function showSuggestions(value) {
 }
 
 // Обновление моделей при выборе марки
-function updateModels() {
+function updateModels(triggerFilter = true) {
   const brandSelect = document.getElementById('brandSelect');
   const modelSelect = document.getElementById('modelSelect');
+  
+  if (!brandSelect || !modelSelect) return;
+  
   const selectedBrand = brandSelect.value.toLowerCase();
   
   modelSelect.innerHTML = '<option value="" selected>Выберите модель</option>';
   modelSelect.disabled = !selectedBrand;
   
-  if (selectedBrand) {
+  // Проверяем наличие моделей для выбранной марки
+  if (selectedBrand && modelsByBrand[selectedBrand]) {
     modelsByBrand[selectedBrand].forEach(model => {
       const option = document.createElement('option');
-      option.value = model.name.toLowerCase();
-      option.textContent = model.name;
-      option.dataset.image = model.image;
+      option.value = model.toLowerCase();
+      option.textContent = model;
       modelSelect.appendChild(option);
     });
   }
   
-  filterCars();
+  if (triggerFilter) filterCars();
 }
 
 // Фильтрация по типу кузова с обновлением других параметров
@@ -386,17 +502,17 @@ function filterByBodyType() {
     
 // Основная функция фильтрации
 function filterCars() {
-  const brand = document.getElementById('brandSelect').value.toLowerCase();
-  const model = document.getElementById('modelSelect').value;
-  const year = document.getElementById('yearSelect').value;
-  const bodyType = document.getElementById('bodyTypeSelect').value;
-  const driveType = document.getElementById('driveTypeSelect').value;
-  const power = document.getElementById('powerSelect').value;
-  const minPrice = parseInt(document.getElementById('minPrice').value) || 0;
-  const maxPrice = parseInt(document.getElementById('maxPrice').value) || Infinity;
-  const searchText = document.getElementById('search').value.toLowerCase();
+  const brand = document.getElementById('brandSelect')?.value?.toLowerCase() || '';
+  const model = document.getElementById('modelSelect')?.value || '';
+  const year = document.getElementById('yearSelect')?.value || '';
+  const bodyType = document.getElementById('bodyTypeSelect')?.value || '';
+  const driveType = document.getElementById('driveTypeSelect')?.value || '';
+  const power = document.getElementById('powerSelect')?.value || '';
+  const minPrice = parseInt(document.getElementById('minPrice')?.value) || 0;
+  const maxPrice = parseInt(document.getElementById('maxPrice')?.value) || Infinity;
+  const searchText = document.getElementById('search')?.value?.toLowerCase() || '';
   
-  const filteredCars = cars.filter(car => {
+  currentFilteredCars = cars.filter(car => {
     // Фильтрация по марке
     if (brand && car.brand.toLowerCase() !== brand) return false;
     
@@ -412,9 +528,9 @@ function filterCars() {
     // Фильтрация по приводу
     if (driveType && car.drive !== driveType) return false;
     
-    // Фильтрация по мощности (используем реальное поле из БД)
+    // Фильтрация по мощности
     if (power) {
-      const carPower = car.power; // Изменено: используем реальное поле
+      const carPower = car.power;
       const powerValue = parseInt(power);
       if (powerValue === 50 && carPower > 50) return false;
       if (powerValue === 100 && (carPower <= 50 || carPower > 100)) return false;
@@ -427,8 +543,8 @@ function filterCars() {
       if (powerValue === 1001 && carPower <= 1000) return false;
     }
     
-    // Фильтрация по цене (используем реальное поле из БД)
-    const carPrice = car.price; // Изменено: используем реальное поле
+    // Фильтрация по цене
+    const carPrice = car.price;
     if (carPrice < minPrice || carPrice > maxPrice) return false;
     
     // Фильтрация по поисковому запросу
@@ -441,13 +557,16 @@ function filterCars() {
   });
   
   currentPage = 1; // Сбрасываем на первую страницу при фильтрации
-  renderCatalog(filteredCars);
+  renderCatalog(currentFilteredCars);
 }
     
 // Применение фильтров
 function applyFilters() {
   filterCars();
-  document.getElementById('filtersPanel').style.display = 'none';
+  const panel = document.getElementById('filtersPanel');
+  if (panel) {
+    panel.style.display = 'none';
+  }
 }
 
 // Функция поиска
@@ -458,43 +577,64 @@ function performSearch() {
 // Сброс фильтра
 function resetFilter(filterId) {
   const element = document.getElementById(filterId);
-  if (element.tagName === 'SELECT') {
+  if (element) {
     element.value = '';
-  }
-  filterCars();
-  
-  // Если сбрасываем марку, нужно также сбросить модели
-  if (filterId === 'brandSelect') {
-    const modelSelect = document.getElementById('modelSelect');
-    modelSelect.innerHTML = '<option value="" selected>Сначала выберите марку</option>';
-    modelSelect.disabled = true;
+    
+    // Если сбрасываем марку, нужно также сбросить модели
+    if (filterId === 'brandSelect') {
+      const modelSelect = document.getElementById('modelSelect');
+      if (modelSelect) {
+        modelSelect.innerHTML = '<option value="" selected>Сначала выберите марку</option>';
+        modelSelect.disabled = true;
+      }
+    }
+    
+    filterCars();
   }
 }
 
 // Сброс ценового фильтра
 function resetPriceFilter() {
-  document.getElementById('minPrice').value = '300000';
-  document.getElementById('maxPrice').value = '10000000';
-  document.getElementById('priceSlider').value = '300000';
+  const minPrice = document.getElementById('minPrice');
+  const maxPrice = document.getElementById('maxPrice');
+  const priceSlider = document.getElementById('priceSlider');
+  
+  if (minPrice && maxPrice && priceSlider) {
+    const min = Math.min(...cars.map(car => car.price));
+    const max = Math.max(...cars.map(car => car.price));
+    
+    // Защита от пустого массива
+    const safeMin = isFinite(min) ? min : 0;
+    const safeMax = isFinite(max) ? max : 10000000;
+    
+    minPrice.value = safeMin;
+    maxPrice.value = safeMax;
+    priceSlider.value = safeMin;
+  }
+  
   filterCars();
 }
 
 // Пагинация
 function changePage(page) {
+  const totalPages = Math.ceil(currentFilteredCars.length / itemsPerPage);
+  
   if (page === -1 && currentPage > 1) {
     currentPage--;
-  } else if (page === 1 && currentPage < Math.ceil(cars.length / itemsPerPage)) {
+  } else if (page === 1 && currentPage < totalPages) {
     currentPage++;
   } else if (page > 0) {
     currentPage = page;
   }
   
-  renderCatalog(cars);
+  renderCatalog(currentFilteredCars);
 }
 
 function updatePagination() {
   const pagination = document.getElementById('pagination');
-  const totalPages = Math.ceil(cars.length / itemsPerPage);
+  if (!pagination) return;
+  
+  const totalPages = Math.ceil(currentFilteredCars.length / itemsPerPage);
   
   // Очищаем кнопки пагинации, кроме первой и последней
   while (pagination.children.length > 2) {
@@ -516,227 +656,33 @@ function updatePagination() {
   const prevButton = pagination.firstElementChild;
   const nextButton = pagination.lastElementChild;
   
-  prevButton.disabled = currentPage === 1;
-  nextButton.disabled = currentPage === totalPages;
+  if (prevButton) prevButton.disabled = currentPage === 1;
+  if (nextButton) nextButton.disabled = currentPage === totalPages || totalPages === 0;
 }
-
-// Применение фильтров из URL
-function applyUrlFilters() {
-  const urlParams = new URLSearchParams(window.location.search);
-  
-  // Бренд
-  const urlBrand = urlParams.get('brand');
-  if (urlBrand) {
-    document.getElementById('brandSelect').value = urlBrand.toLowerCase();
-    updateModels();
-  }
-  
-  // Модель
-  const urlModel = urlParams.get('model');
-  if (urlModel) {
-    // Ждем обновления списка моделей
-    setTimeout(() => {
-      document.getElementById('modelSelect').value = urlModel.toLowerCase();
-    }, 100);
-  }
-  
-  // Максимальная цена
-  const urlPrice = urlParams.get('maxPrice');
-  if (urlPrice) {
-    document.getElementById('maxPrice').value = urlPrice;
-  }
-  
-  // Тип кузова
-  const urlBodyType = urlParams.get('bodyType');
-  if (urlBodyType) {
-    document.getElementById('bodyTypeSelect').value = urlBodyType;
-  }
-  
-  // Применяем фильтры
-  setTimeout(() => filterCars(), 200);
-}
-
-function getBodyType(type) {
-const types = {
-  'sedan': 'Седан',
-  'hatchback': 'Хэтчбэк',
-  'suv': 'Кроссовер',
-  'crossover': 'Внедорожник',
-  'coupe': 'Купе'
-};
-return types[type] || type;
-}
-
-function getDriveType(type) {
-  const types = {
-    'front': 'Передний',
-    'rear': 'Задний',
-    'full': 'Полный'
-  };
-  return types[type] || type;
-}
-
-// Генерация характеристик для автомобиля
-function generateCarDetails(car) {
-  // Изменено: используем реальные значения из БД
-  const power = car.power; // Используем реальное поле из БД
-  
-  // Генерация объема двигателя на основе мощности
-  const engineVolume = (power / 90).toFixed(1) + ' л';
-  
-  // Генерация разгона 0-100 км/ч
-  const acceleration = (10 - power / 50).toFixed(1) + ' с';
-  
-  // Генерация расхода топлива
-  const fuelConsumption = (power / 35).toFixed(1) + ' л / 100 км';
-  
-  // Определение страны производителя
-  const countryMap = {
-    'Toyota': 'Япония',
-    'Audi': 'Германия',
-    'BMW': 'Германия',
-    'Skoda': 'Чехия'
-  };
-  const country = countryMap[car.brand] || 'Китай';
-  
-  // Определение количества дверей
-  const doors = car.bodyType === 'sedan' ? '4' : '5';
-  
-  return {
-    engineVolume,
-    acceleration,
-    fuelConsumption,
-    country,
-    doors,
-    torque: (power * 1.7).toFixed(0) + ' Нм'
-  };
-}
-
-document.addEventListener('DOMContentLoaded', function() {
-  // Загрузка данных автомобиля
-  const state = JSON.parse(localStorage.getItem('futureAutoState'));
-  const carId = state?.currentCarId;
-  
-  if (carId) {
-    const car = cars.find(c => c.id === carId);
-    
-    if (car) {
-      renderCar(car);
-    } else {
-      showError('Автомобиль не найден');
-    }
-  } else {
-    showError('Не выбран автомобиль для просмотра');
-  }
-
-  // Обработчики форм
-  document.getElementById('orderForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    alert('Ваш заказ успешно оформлен! С вами свяжется менеджер для подтверждения.');
-    closeModal('orderModal');
-  });
-
-  document.getElementById('testDriveForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    alert('Вы успешно записаны на тест-драйв! С вами свяжется менеджер для подтверждения.');
-    closeModal('testDriveModal');
-  });
-});
-
-function showError(message) {
-  const container = document.querySelector('.container');
-  container.innerHTML = `<div class="error">${message}</div>`;
-}
-
-// Функция отображения данных автомобиля
-function renderCar(car) {
-  // Генерация дополнительных характеристик
-  const details = generateCarDetails(car);
-  
-  // Обновляем данные на странице
-  document.getElementById('car-title').textContent = `${car.brand} ${car.model}`;
-  document.getElementById('car-price').textContent = `${car.price.toLocaleString('ru-RU')}₽`;
-  document.getElementById('car-description').textContent = car.description;
-  
-  // Устанавливаем изображение автомобиля (с заглушкой при ошибке)
-  const img = document.getElementById('mainImage');
-  // Изменено: использование первого изображения из массива
-  const imageUrl = car.images.length > 0 ? car.images[0] : 'no-image.jpg';
-  img.src = imageUrl;
-  img.alt = `${car.brand} ${car.model}`;
-  img.onerror = function() {
-    // Если изображение не загрузилось, используем заглушку
-    const carIndex = car.id % 8; // Получаем число от 0 до 7
-    this.src = `images/image${carIndex}.png`;
-  };
-  
-  // Обновляем характеристики
-  document.getElementById('specs-main').innerHTML = `
-    <tr><td>Мощность двигателя</td><td>${car.power} л.с.</td></tr>
-    <tr><td>Объем двигателя</td><td>${details.engineVolume}</td></tr>
-    <tr><td>Разгон 0-100 км/ч</td><td>${details.acceleration}</td></tr>
-    <tr><td>Расход топлива</td><td>${details.fuelConsumption}</td></tr>
-    <tr><td>Привод</td><td>${getDriveType(car.drive)}</td></tr>
-  `;
-  
-  document.getElementById('specs-engine').innerHTML = `
-    <tr><td>Рабочий объем</td><td>${details.engineVolume}</td></tr>
-    <tr><td>Тип двигателя</td><td>Бензиновый</td></tr>
-    <tr><td>Конфигурация</td><td>Рядный</td></tr>
-    <tr><td>Обороты макс.</td><td>6500 об/мин</td></tr>
-    <tr><td>Крутящий момент</td><td>${details.torque}</td></tr>
-  `;
-  
-  document.getElementById('specs-general').innerHTML = `
-    <tr><td>Страна</td><td>${details.country}</td></tr>
-    <tr><td>Год</td><td>${car.year}</td></tr>
-    <tr><td>Кузов</td><td>${getBodyType(car.bodyType)}</td></tr>
-    <tr><td>Комплектация</td><td>Flagship Sport</td></tr>
-    <tr><td>Количество дверей</td><td>${details.doors}</td></tr>
-  `;
-}
-
-// Функция смены цвета автомобиля
-function changeColor(color, imageUrl) {
-  document.getElementById('mainImage').src = imageUrl;
-  
-  // Обновление активного цвета
-  const colors = document.querySelectorAll('.color');
-  colors.forEach(c => c.classList.remove('active'));
-  event.target.classList.add('active');
-}
-
-function showOrderModal() {
-  document.getElementById('orderModal').style.display = 'block';
-}
-
-function showTestDriveModal() {
-  document.getElementById('testDriveModal').style.display = 'block';
-}
-
-function closeModal(modalId) {
-  document.getElementById(modalId).style.display = 'none';
-}
-
-window.onclick = function(event) {
-  if (event.target.classList.contains('modal')) {
-    event.target.style.display = 'none';
-  }
-};
 
 // Функция обновления счетчиков в хедере
 function updateHeaderCounters() {
   const state = JSON.parse(localStorage.getItem('futureAutoState')) || { cart: [], favorites: [] };
   
   // Обновление счетчика избранного
-  const favCounter = document.getElementById('favorites-counter');
-  favCounter.textContent = state.favorites.length > 0 ? state.favorites.length : '';
-  favCounter.style.display = state.favorites.length > 0 ? 'flex' : 'none';
+  const favIcon = document.getElementById('favorites-icon');
+  if (favIcon) {
+    if (state.favorites.length > 0) {
+      favIcon.setAttribute('data-count', state.favorites.length);
+    } else {
+      favIcon.removeAttribute('data-count');
+    }
+  }
   
   // Обновление счетчика корзины
-  const cartCounter = document.getElementById('cart-counter');
-  cartCounter.textContent = state.cart.length > 0 ? state.cart.length : '';
-  cartCounter.style.display = state.cart.length > 0 ? 'flex' : 'none';
+  const cartIcon = document.getElementById('cart-icon');
+  if (cartIcon) {
+    if (state.cart.length > 0) {
+      cartIcon.setAttribute('data-count', state.cart.length);
+    } else {
+      cartIcon.removeAttribute('data-count');
+    }
+  }
 }
 
 // Функция показа уведомлений
@@ -755,6 +701,11 @@ function showNotification(message) {
     setTimeout(() => document.body.removeChild(notification), 300);
   }, 3000);
 }
+
+// Загрузка автомобилей при загрузке страницы
+document.addEventListener('DOMContentLoaded', async function() {
+  await initCatalogPage();
+});
 
 // Экспорт основной функции
 window.initCatalogPage = initCatalogPage;

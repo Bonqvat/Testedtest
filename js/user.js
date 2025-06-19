@@ -1,11 +1,13 @@
 function initUserPage() {
     // Инициализация состояния приложения
-    if (!JSON.parse(localStorage.getItem('futureAutoState'))) {
-        localStorage.setItem('futureAutoState', JSON.stringify({
+    let state = JSON.parse(localStorage.getItem('futureAutoState'));
+    if (!state) {
+        state = {
             user: null,
             cart: [],
             favorites: []
-        }));
+        };
+        localStorage.setItem('futureAutoState', JSON.stringify(state));
     }
 
     let currentEditType = '';
@@ -149,7 +151,7 @@ function initUserPage() {
             document.getElementById('userLastLogin').textContent = 'Никогда';
         }
         
-        // Сохраняем данные в state
+        // Обновляем глобальное состояние
         const state = JSON.parse(localStorage.getItem('futureAutoState'));
         if (state) {
             state.user = {
@@ -180,7 +182,14 @@ function initUserPage() {
     }
     
     function logout() {
-        localStorage.removeItem('futureAutoState');
+        // Обновляем состояние перед выходом
+        const state = JSON.parse(localStorage.getItem('futureAutoState'));
+        if (state) {
+            state.user = null;
+            state.cart = [];
+            state.favorites = [];
+            localStorage.setItem('futureAutoState', JSON.stringify(state));
+        }
         window.location.href = 'index.html';
     }
 
@@ -197,10 +206,10 @@ function initUserPage() {
     }
 
     // Проверка авторизации пользователя
-    const state = JSON.parse(localStorage.getItem('futureAutoState'));
-    if (!state || !state.user) {
+    const currentState = JSON.parse(localStorage.getItem('futureAutoState'));
+    if (!currentState || !currentState.user) {
         alert('Пожалуйста, войдите в систему');
-        window.location.href = '#index';
+        window.location.href = 'index.html';
         return;
     }
 
@@ -217,6 +226,40 @@ function initUserPage() {
     window.viewOrderDetails = viewOrderDetails;
     window.repeatOrder = repeatOrder;
     window.cancelOrder = cancelOrder;
+    window.logout = logout; // Экспортируем для глобального доступа
 }
 
 window.initUserPage = initUserPage;
+
+// Глобальные функции для управления состоянием
+async function loginUser(email, password) {
+    const response = await fetch('script.php?action=login', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ email, password })
+    });
+    
+    const data = await response.json();
+    
+    if (data.success) {
+        // Загружаем данные пользователя
+        const [cart, favorites] = await Promise.all([
+            fetch('script.php?action=getCart').then(r => r.json()),
+            fetch('script.php?action=getFavorites').then(r => r.json())
+        ]);
+        
+        // Обновляем состояние
+        const state = JSON.parse(localStorage.getItem('futureAutoState')) || {
+            cart: [],
+            favorites: []
+        };
+        
+        state.user = data.user;
+        state.cart = cart;
+        state.favorites = favorites;
+        
+        localStorage.setItem('futureAutoState', JSON.stringify(state));
+        return true;
+    }
+    return false;
+}

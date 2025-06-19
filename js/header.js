@@ -10,7 +10,7 @@ async function loadHeader() {
 
     loadHeaderStyles();
     setupLoginForm();
-    updateHeaderCounters();
+    await updateHeaderCounters(); // Добавлен await
     updateAuthUI();
   } catch (err) {
     console.error("Ошибка загрузки заголовка:", err.message);
@@ -41,29 +41,31 @@ function setupLoginForm() {
   }
 }
 
-function updateHeaderCounters() {
-  const state = JSON.parse(localStorage.getItem('futureAutoState')) || { 
-    cart: [], 
-    favorites: [] 
-  };
-  
-  const cartIcon = document.getElementById('cart-icon');
-  const favIcon = document.getElementById('favorites-icon');
-  
-  if (cartIcon) {
-    if (state.cart.length > 0) {
-      cartIcon.setAttribute('data-count', state.cart.length);
-    } else {
-      cartIcon.removeAttribute('data-count');
-    }
-  }
-  
-  if (favIcon) {
-    if (state.favorites.length > 0) {
-      favIcon.setAttribute('data-count', state.favorites.length);
-    } else {
-      favIcon.removeAttribute('data-count');
-    }
+// Новые функции для работы с сервером
+async function loadUserCart() {
+  const response = await fetch('script.php?action=getCart');
+  const cart = await response.json();
+  return cart;
+}
+
+async function loadUserFavorites() {
+  const response = await fetch('script.php?action=getFavorites');
+  return await response.json();
+}
+
+// Обновленная функция счетчиков
+async function updateHeaderCounters() {
+  try {
+    const cart = await loadUserCart();
+    const favorites = await loadUserFavorites();
+    
+    const cartIcon = document.getElementById('cart-icon');
+    const favIcon = document.getElementById('favorites-icon');
+    
+    if (cartIcon) cartIcon.setAttribute('data-count', cart.length);
+    if (favIcon) favIcon.setAttribute('data-count', favorites.length);
+  } catch (error) {
+    console.error('Ошибка обновления счетчиков:', error);
   }
 }
 
@@ -190,6 +192,7 @@ window.handleLogin = function() {
       closeModal('loginModal');
       updateAuthUI();
       showNotification(`Добро пожаловать, ${state.user.name}!`);
+      updateHeaderCounters(); // Обновляем счетчики после входа
     }
   })
   .catch(error => {
@@ -206,6 +209,7 @@ window.logout = function() {
   updateAuthUI();
   showNotification('Вы успешно вышли из системы');
   window.location.href = '#index';
+  updateHeaderCounters(); // Обновляем счетчики после выхода
 };
 
 function showNotification(message, type = 'success') {
