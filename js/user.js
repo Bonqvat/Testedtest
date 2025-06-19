@@ -223,3 +223,5 @@ function initUserPage() {
     window.cancelOrder = cancelOrder;
     window.logout = logout;
 }
+
+window.initUserPage = initUserPage;
