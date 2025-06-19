@@ -143,14 +143,6 @@ window.openLoginModal = function() {
   }
 };
 
-window.closeModal = function(modalId) {
-  const modal = document.getElementById(modalId);
-  if (modal) {
-    modal.classList.remove('active');
-    document.body.style.overflow = '';
-  }
-};
-
 window.handleLogin = function() {
   const emailInput = document.getElementById('email');
   const passwordInput = document.getElementById('password');
@@ -213,6 +205,7 @@ window.logout = function() {
   closeModal('loginModal');
   updateAuthUI();
   showNotification('Вы успешно вышли из системы');
+  window.location.href = '#index';
 };
 
 function showNotification(message, type = 'success') {

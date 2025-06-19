@@ -12,6 +12,7 @@ function initUserPage() {
 
     // Загружаем данные пользователя с сервера
     loadUserData();
+    window.closeModal('loginModal');
 
     // Функции работы с модальными окнами
     function openEditModal(type) {
@@ -54,10 +55,6 @@ function initUserPage() {
         }
         
         modal.style.display = 'block';
-    }
-    
-    function closeModal() {
-        document.getElementById('editModal').style.display = 'none';
     }
     
     function saveChanges() {
@@ -203,7 +200,7 @@ function initUserPage() {
     const state = JSON.parse(localStorage.getItem('futureAutoState'));
     if (!state || !state.user) {
         alert('Пожалуйста, войдите в систему');
-        window.location.href = 'index.html';
+        window.location.href = '#index';
         return;
     }
 
@@ -216,12 +213,10 @@ function initUserPage() {
 
     // Экспорт функций в глобальную область видимости
     window.openEditModal = openEditModal;
-    window.closeModal = closeModal;
     window.saveChanges = saveChanges;
     window.viewOrderDetails = viewOrderDetails;
     window.repeatOrder = repeatOrder;
     window.cancelOrder = cancelOrder;
-    window.logout = logout;
 }
 
 window.initUserPage = initUserPage;

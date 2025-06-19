@@ -630,7 +630,6 @@ window.loadCarPage = loadCarPage;
 window.openLoginModal = openLoginModal;
 window.closeModal = closeModal;
 window.handleRegister = handleRegister;
-window.logout = logout;
 window.performSearch = window.performSearch;
 window.changeMainImage = changeMainImage;
 window.updateHeaderCounters = updateHeaderCounters;
