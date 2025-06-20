@@ -59,7 +59,7 @@ function renderCar(car) {
   img.src = car.images.black;
   img.alt = `${car.brand} ${car.model}`;
   img.onerror = function() {
-    this.src = 'images/car-placeholder.png';
+    this.src = 'images/no-image.jpg';
     this.classList.add('placeholder-image');
   };
   
