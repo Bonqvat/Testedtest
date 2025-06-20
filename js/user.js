@@ -116,7 +116,7 @@ function initUserPage() {
                     // Если ошибка авторизации - перенаправляем на главную
                     if (data.error.includes('Not authorized')) {
                         setTimeout(() => {
-                            window.location.href = 'index.html';
+                            window.location.href = '#index';
                         }, 2000);
                     }
                     return;
@@ -190,7 +190,7 @@ function initUserPage() {
             state.favorites = [];
             localStorage.setItem('futureAutoState', JSON.stringify(state));
         }
-        window.location.href = 'index.html';
+        window.location.href = '#index';
     }
 
     // Вспомогательные функции
@@ -209,7 +209,7 @@ function initUserPage() {
     const currentState = JSON.parse(localStorage.getItem('futureAutoState'));
     if (!currentState || !currentState.user) {
         alert('Пожалуйста, войдите в систему');
-        window.location.href = 'index.html';
+        window.location.href = '#index';
         return;
     }
 
