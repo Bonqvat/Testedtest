@@ -21,6 +21,11 @@ function initCarPage() {
       renderCar(car);
       // Сохраняем текущий автомобиль для быстрого доступа
       window.currentCar = car;
+
+      document.querySelector('.cart-btn')?.addEventListener('click', () => addToCart(carId));
+      document.querySelector('.favorite-btn')?.addEventListener('click', () => addToFavorites(carId));
+      document.querySelector('.order-btn')?.addEventListener('click', showOrderModal);
+      document.querySelector('.test-drive-btn')?.addEventListener('click', showTestDriveModal);
     } else {
       showError('Автомобиль не найден');
     }
@@ -97,57 +102,6 @@ function changeColor(color, imageUrl) {
   const colors = document.querySelectorAll('.color');
   colors.forEach(c => c.classList.remove('active'));
   event.target.classList.add('active');
-}
-
-// Функция добавления в корзину
-function addToCart() {
-  if (!window.currentCar) {
-    alert('Ошибка: данные автомобиля не загружены');
-    return;
-  }
-  
-  const car = window.currentCar;
-  const state = JSON.parse(localStorage.getItem('futureAutoState'));
-  
-  // Обновление состояния корзины
-  const existingItem = state.cart.find(item => item.id === car.id);
-  
-  if (existingItem) {
-    existingItem.quantity += 1;
-  } else {
-    state.cart.push({
-      id: car.id,
-      brand: car.brand,
-      model: car.model,
-      price: car.price,
-      quantity: 1
-    });
-  }
-  
-  localStorage.setItem('futureAutoState', JSON.stringify(state));
-  updateHeaderCounters();
-  alert(`Автомобиль ${car.brand} ${car.model} добавлен в корзину!`);
-}
-
-// Функция добавления в избранное
-function addToFavorites() {
-  if (!window.currentCar) {
-    alert('Ошибка: данные автомобиля не загружены');
-    return;
-  }
-
-  const car = window.currentCar;
-  const state = JSON.parse(localStorage.getItem('futureAutoState'));
-  
-  // Обновляем состояние
-  if (!state.favorites.includes(car.id)) {
-    state.favorites.push(car.id);
-    localStorage.setItem('futureAutoState', JSON.stringify(state));
-    updateHeaderCounters();
-    alert(`Автомобиль ${car.brand} ${car.model} добавлен в избранное!`);
-  } else {
-    alert('Этот автомобиль уже в избранном');
-  }
 }
 
 function showOrderModal() {

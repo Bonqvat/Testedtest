@@ -275,58 +275,6 @@ function renderCatalog(carsToShow) {
   updatePagination();
 }
 
-// Добавление в избранное
-async function addToFavorites(carId) {
-  try {
-    const response = await fetch('script.php?action=addToFavorites', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ carId })
-    });
-    
-    const result = await response.json();
-    if (result.success) {
-      // Обновление UI
-      const favIcon = document.getElementById('favorites-icon');
-      favIcon.classList.add('bounce-animation');
-      setTimeout(() => favIcon.classList.remove('bounce-animation'), 500);
-      
-      updateHeaderCounters();
-      showNotification(`Автомобиль добавлен в избранное!`);
-    }
-  } catch (error) {
-    console.error('Error:', error);
-  }
-}
-
-// Добавление в корзину
-async function addToCart(carId) {
-  try {
-    const response = await fetch('script.php?action=addToCart', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ carId })
-    });
-    
-    const result = await response.json();
-    if (result.success) {
-      // Обновление UI
-      const cartIcon = document.getElementById('cart-icon');
-      cartIcon.classList.add('bounce-animation');
-      setTimeout(() => cartIcon.classList.remove('bounce-animation'), 500);
-      
-      updateHeaderCounters();
-      showNotification(`Автомобиль добавлен в корзину!`);
-    }
-  } catch (error) {
-    console.error('Error:', error);
-  }
-}
-
 // Переход на страницу автомобиля
 function showCarDetails(carId) {
   const state = JSON.parse(localStorage.getItem('futureAutoState')) || {};

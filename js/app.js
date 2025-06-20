@@ -474,14 +474,57 @@ function updateAuthUI() {
   }
 }
 
-// Функции для работы с корзиной и избранным
-function addToCart(productId) {
-  const state = getAppState();
-  if (!state.cart.includes(productId)) {
-    state.cart.push(productId);
-    saveAppState(state);
-    showNotification('Товар добавлен в корзину');
-    updateUI();
+
+
+// Добавление в избранное
+async function addToFavorites(carId) {
+  try {
+    const response = await fetch('script.php?action=addToFavorites', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ carId })
+    });
+    
+    const result = await response.json();
+    if (result.success) {
+      // Обновление UI
+      const favIcon = document.getElementById('favorites-icon');
+      favIcon.classList.add('bounce-animation');
+      setTimeout(() => favIcon.classList.remove('bounce-animation'), 500);
+      
+      updateHeaderCounters();
+      showNotification(`Автомобиль добавлен в избранное!`);
+    }
+  } catch (error) {
+    console.error('Error:', error);
+  }
+}
+
+// Добавление в корзину
+async function addToCart(carId) {
+  try {
+    const response = await fetch('script.php?action=addToCart', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ carId })
+    });
+    
+    const result = await response.json();
+    if (result.success) {
+      // Обновление UI
+      const cartIcon = document.getElementById('cart-icon');
+      cartIcon.classList.add('bounce-animation');
+      setTimeout(() => cartIcon.classList.remove('bounce-animation'), 500);
+      
+      updateHeaderCounters();
+      showNotification(`Автомобиль добавлен в корзину!`);
+    }
+  } catch (error) {
+    console.error('Error:', error);
   }
 }
 
@@ -491,16 +534,6 @@ function removeFromCart(productId) {
   saveAppState(state);
   showNotification('Товар удален из корзины');
   updateUI();
-}
-
-function addToFavorites(productId) {
-  const state = getAppState();
-  if (!state.favorites.includes(productId)) {
-    state.favorites.push(productId);
-    saveAppState(state);
-    showNotification('Товар добавлен в избранное');
-    updateUI();
-  }
 }
 
 function removeFromFavorites(productId) {
@@ -623,8 +656,8 @@ window.performSearch = function() {
 
 // Экспорт функций в глобальную область видимости
 window.addToCart = addToCart;
-window.removeFromCart = removeFromCart;
 window.addToFavorites = addToFavorites;
+window.removeFromCart = removeFromCart;
 window.removeFromFavorites = removeFromFavorites;
 window.loadCarPage = loadCarPage;
 window.openLoginModal = openLoginModal;
