@@ -180,18 +180,6 @@ function initUserPage() {
             showNotification('Заказ #' + orderId + ' отменен');
         }
     }
-    
-    function logout() {
-        // Обновляем состояние перед выходом
-        const state = JSON.parse(localStorage.getItem('futureAutoState'));
-        if (state) {
-            state.user = null;
-            state.cart = [];
-            state.favorites = [];
-            localStorage.setItem('futureAutoState', JSON.stringify(state));
-        }
-        window.location.href = '#index';
-    }
 
     // Вспомогательные функции
     function showNotification(message, type = 'success') {
@@ -226,40 +214,6 @@ function initUserPage() {
     window.viewOrderDetails = viewOrderDetails;
     window.repeatOrder = repeatOrder;
     window.cancelOrder = cancelOrder;
-    window.logout = logout; // Экспортируем для глобального доступа
 }
 
 window.initUserPage = initUserPage;
-
-// Глобальные функции для управления состоянием
-async function loginUser(email, password) {
-    const response = await fetch('script.php?action=login', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ email, password })
-    });
-    
-    const data = await response.json();
-    
-    if (data.success) {
-        // Загружаем данные пользователя
-        const [cart, favorites] = await Promise.all([
-            fetch('script.php?action=getCart').then(r => r.json()),
-            fetch('script.php?action=getFavorites').then(r => r.json())
-        ]);
-        
-        // Обновляем состояние
-        const state = JSON.parse(localStorage.getItem('futureAutoState')) || {
-            cart: [],
-            favorites: []
-        };
-        
-        state.user = data.user;
-        state.cart = cart;
-        state.favorites = favorites;
-        
-        localStorage.setItem('futureAutoState', JSON.stringify(state));
-        return true;
-    }
-    return false;
-}
