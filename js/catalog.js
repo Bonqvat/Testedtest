@@ -330,7 +330,7 @@ function showCarDetails(carId) {
   const state = JSON.parse(localStorage.getItem('futureAutoState')) || {};
   state.currentCarId = carId;
   localStorage.setItem('futureAutoState', JSON.stringify(state));
-  window.location.href = `car-details.html?id=${carId}`;
+  window.location.href = `#car-page?id=${carId}`;
 }
 
 // Функция для обновления доступных опций в селектах
