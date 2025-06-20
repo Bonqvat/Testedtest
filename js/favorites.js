@@ -1,69 +1,31 @@
 import { cars } from '/data/data.js';
 
 const state = {
-  user: null,
   cart: [],
   favorites: []
 };
 
 async function initFavoritesPage() {
-  // Проверяем сохраненное состояние
-  const savedState = localStorage.getItem('futureAutoState');
-  if (savedState) {
-    const stateObj = JSON.parse(savedState);
-    state.user = stateObj.user;
-    state.cart = stateObj.cart || [];
-    state.favorites = stateObj.favorites || [];
-  }
-
-  if (!state.user) {
-    alert('Пожалуйста, войдите в систему');
-    loadPage('index');
-    return;
-  }
-
   try {
-    const [cart, favorites] = await Promise.all([
-      fetchCart(),
-      fetchFavorites()
-    ]);
+    // Загрузка данных с сервера
+    const favResponse = await fetch('script.php?action=getFavorites');
+    const favData = await favResponse.json();
     
-    // Обновляем состояние актуальными данными с сервера
-    state.cart = cart;
-    state.favorites = favorites;
+    const cartResponse = await fetch('script.php?action=getCart');
+    const cartData = await cartResponse.json();
     
-    // Сохраняем обновленное состояние
-    saveState();
+    state.favorites = favData.map(car => car.id);
+    state.cart = cartData.map(car => car.id);
     
-    renderCart(); 
     renderFavorites();
+    renderCart();
     updateHeaderCounters();
   } catch (error) {
-    showNotification(`Ошибка загрузки: ${error.message}`, 'error');
-    
-    // В случае ошибки используем данные из localStorage
-    renderCart();
-    renderFavorites();
-    updateHeaderCounters();
+    console.error('Error loading data:', error);
   }
 }
 
-// Функции получения данных с сервера
-async function fetchCart() {
-  const response = await fetch('script.php?action=getCart');
-  const data = await response.json();
-  if (data.error) throw new Error(data.error);
-  return data;
-}
-
-async function fetchFavorites() {
-  const response = await fetch('script.php?action=getFavorites');
-  const data = await response.json();
-  if (data.error) throw new Error(data.error);
-  return data;
-}
-
-// Отображение корзины
+// Восстановленная функция отображения корзины
 function renderCart() {
   const cartItemsContainer = document.getElementById('cart-items');
   const cartSummary = document.getElementById('cart-summary');
@@ -112,32 +74,35 @@ function renderCart() {
   document.getElementById('cart-count').textContent = state.cart.length;
 }
 
-// Удаление из корзины
 async function removeFromCart(productId) {
   try {
-    await fetch('script.php?action=removeFromCart', {
+    const response = await fetch('script.php?action=removeFromCart', {
       method: 'POST',
-      headers: {'Content-Type': 'application/json'},
+      headers: {
+        'Content-Type': 'application/json'
+      },
       body: JSON.stringify({ carId: productId })
     });
-
-    state.cart = state.cart.filter(id => id !== productId);
-    saveState();
-    renderCart();
-    updateHeaderCounters();
     
-    const car = cars.find(c => c.id == productId);
-    if (car) {
-      showNotification(`${car.brand} ${car.model} удален из корзины`);
-    } else {
+    const result = await response.json();
+    if (result.success) {
+      // Обновляем локальное состояние
+      state.cart = state.cart.filter(id => id !== productId);
+      // Сохраняем в localStorage
+      const stateObj = JSON.parse(localStorage.getItem('futureAutoState')) || {};
+      stateObj.cart = state.cart;
+      localStorage.setItem('futureAutoState', JSON.stringify(stateObj));
+      
+      // Обновляем UI
+      renderCart();
+      updateHeaderCounters();
       showNotification(`Товар удален из корзины`);
     }
   } catch (error) {
-    showNotification(`Ошибка: ${error.message}`, 'error');
+    console.error('Error:', error);
   }
 }
 
-// Отображение избранного
 function renderFavorites() {
   const favoritesContainer = document.getElementById('favorites-items');
   if (!favoritesContainer) return;
@@ -174,7 +139,6 @@ function renderFavorites() {
   document.getElementById('favorites-count').textContent = state.favorites.length;
 }
 
-// Обновление счетчиков в шапке
 function updateHeaderCounters() {
   const cartIcon = document.querySelector('.icons .fa-shopping-cart');
   const favIcon = document.querySelector('.icons .fa-star');
@@ -194,7 +158,6 @@ function updateHeaderCounters() {
   }
 }
 
-// Форматирование цены
 function formatPrice(price) {
   return new Intl.NumberFormat('ru-RU', { 
     style: 'currency', 
@@ -203,74 +166,79 @@ function formatPrice(price) {
   }).format(price);
 }
 
-// Добавление в корзину
 async function addToCart(productId) {
   try {
-    await fetch('script.php?action=addToCart', {
+    const response = await fetch('script.php?action=addToCart', {
       method: 'POST',
-      headers: {'Content-Type': 'application/json'},
+      headers: {
+        'Content-Type': 'application/json'
+      },
       body: JSON.stringify({ carId: productId })
     });
     
-    if (!state.cart.includes(productId)) {
-      state.cart.push(productId);
-      saveState();
-    }
-    
-    const car = cars.find(c => c.id == productId);
-    if (car) {
-      showNotification(`${car.brand} ${car.model} добавлен в корзину`);
-    } else {
+    const result = await response.json();
+    if (result.success) {
+      // Обновляем локальное состояние
+      if (!state.cart.includes(productId)) {
+        state.cart.push(productId);
+        // Сохраняем в localStorage
+        const stateObj = JSON.parse(localStorage.getItem('futureAutoState')) || {};
+        stateObj.cart = state.cart;
+        localStorage.setItem('futureAutoState', JSON.stringify(stateObj));
+      }
+      
+      // Обновляем UI
       showNotification(`Товар добавлен в корзину`);
+      updateHeaderCounters();
+      renderCart();
     }
-    
-    updateHeaderCounters();
-    renderCart();
   } catch (error) {
-    showNotification(`Ошибка: ${error.message}`, 'error');
+    console.error('Error:', error);
   }
 }
 
-// Удаление из избранного
 async function removeFromFavorites(productId) {
   try {
-    await fetch('script.php?action=removeFromFavorite', {
+    const response = await fetch('script.php?action=removeFromFavorites', {
       method: 'POST',
-      headers: {'Content-Type': 'application/json'},
+      headers: {
+        'Content-Type': 'application/json'
+      },
       body: JSON.stringify({ carId: productId })
     });
-
-    state.favorites = state.favorites.filter(id => id !== productId);
-    saveState();
-    renderFavorites();
-    updateHeaderCounters();
-    showNotification(`Товар удален из избранного`);
+    
+    const result = await response.json();
+    if (result.success) {
+      // Обновляем локальное состояние
+      state.favorites = state.favorites.filter(id => id !== productId);
+      // Сохраняем в localStorage
+      const stateObj = JSON.parse(localStorage.getItem('futureAutoState')) || {};
+      stateObj.favorites = state.favorites;
+      localStorage.setItem('futureAutoState', JSON.stringify(stateObj));
+      
+      // Обновляем UI
+      renderFavorites();
+      updateHeaderCounters();
+      showNotification(`Товар удален из избранного`);
+    }
   } catch (error) {
-    showNotification(`Ошибка: ${error.message}`, 'error');
+    console.error('Error:', error);
   }
 }
 
-// Сохранение состояния в localStorage
 function saveState() {
-  const appState = {
-    user: state.user,
-    cart: state.cart,
-    favorites: state.favorites
-  };
+  const appState = JSON.parse(localStorage.getItem('futureAutoState')) || {};
+  appState.cart = state.cart;
+  appState.favorites = state.favorites;
   localStorage.setItem('futureAutoState', JSON.stringify(appState));
 }
 
-// Показ уведомлений
-function showNotification(message, type = 'success') {
+function showNotification(message) {
   const notification = document.getElementById('notification');
   if (!notification) return;
-  
   notification.textContent = message;
-  notification.className = 'notification show ' + type;
-  
-  setTimeout(() => {
-    notification.classList.remove('show');
-  }, 3000);
+  notification.classList.add('show');
+  setTimeout(() => notification.classList.remove('show'), 3000);
 }
 
 window.initFavoritesPage = initFavoritesPage;

@@ -39,16 +39,18 @@ CREATE TABLE users (
     is_admin BOOLEAN
 );
 
-CREATE TABLE user_cart (
+CREATE TABLE cart (
+    id SERIAL PRIMARY KEY,
     user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    car_id INTEGER NOT NULL REFERENCES cars(id),
+    car_id INTEGER NOT NULL REFERENCES cars(id) ON DELETE CASCADE,
     added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (user_id, car_id)
+    UNIQUE(user_id, car_id)
 );
 
-CREATE TABLE user_favorites (
+CREATE TABLE favorites (
+    id SERIAL PRIMARY KEY,
     user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    car_id INTEGER NOT NULL REFERENCES cars(id),
+    car_id INTEGER NOT NULL REFERENCES cars(id) ON DELETE CASCADE,
     added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (user_id, car_id)
+    UNIQUE(user_id, car_id)
 );

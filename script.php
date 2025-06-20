@@ -219,6 +219,7 @@ function loginUser($pdo) {
     }
 }
 
+// Новая функция для регистрации пользователя
 function registerUser($pdo) {
     $data = json_decode(file_get_contents('php://input'), true);
     
@@ -258,7 +259,7 @@ function registerUser($pdo) {
 
         echo json_encode(['success' => true, 'userId' => $userId]);
     } catch (PDOException $e) {
-        // Обработка ошибки дубликата
+        // Обработка ошибки дубликата (хотя мы уже проверили выше)
         if ($e->getCode() == 23505) {
             echo json_encode(['error' => 'Email already registered']);
         } else {
@@ -267,7 +268,8 @@ function registerUser($pdo) {
     }
 }
 
-// Функции для работы с корзиной
+// ====== Корзина ======
+
 function addToCart($pdo) {
     if (!isset($_SESSION['user_id'])) {
         echo json_encode(['error' => 'Not authorized']);
@@ -275,15 +277,25 @@ function addToCart($pdo) {
     }
 
     $data = json_decode(file_get_contents('php://input'), true);
-    $carId = $data['carId'] ?? 0;
+    $carId = $data['carId'] ?? null;
+
+    if (!$carId) {
+        echo json_encode(['error' => 'Car ID required']);
+        return;
+    }
+
     $userId = $_SESSION['user_id'];
-    
+
     try {
-        $stmt = $pdo->prepare("
-            INSERT INTO user_cart (user_id, car_id) 
-            VALUES (?, ?)
-            ON CONFLICT (user_id, car_id) DO NOTHING
-        ");
+        // Проверяем, есть ли уже в корзине
+        $stmt = $pdo->prepare("SELECT id FROM cart WHERE user_id = ? AND car_id = ?");
+        $stmt->execute([$userId, $carId]);
+        if ($stmt->fetch()) {
+            echo json_encode(['success' => true, 'message' => 'Already in cart']);
+            return;
+        }
+
+        $stmt = $pdo->prepare("INSERT INTO cart (user_id, car_id) VALUES (?, ?)");
         $stmt->execute([$userId, $carId]);
         echo json_encode(['success' => true]);
     } catch (PDOException $e) {
@@ -298,13 +310,24 @@ function removeFromCart($pdo) {
     }
 
     $data = json_decode(file_get_contents('php://input'), true);
-    $carId = $data['carId'] ?? 0;
+    $carId = $data['carId'] ?? null;
+
+    if (!$carId) {
+        echo json_encode(['error' => 'Car ID required']);
+        return;
+    }
+
     $userId = $_SESSION['user_id'];
 
     try {
-        $stmt = $pdo->prepare("DELETE FROM user_cart WHERE user_id = ? AND car_id = ?");
+        $stmt = $pdo->prepare("DELETE FROM cart WHERE user_id = ? AND car_id = ?");
         $stmt->execute([$userId, $carId]);
-        echo json_encode(['success' => true]);
+        $count = $stmt->rowCount();
+        if ($count > 0) {
+            echo json_encode(['success' => true]);
+        } else {
+            echo json_encode(['error' => 'Item not found in cart']);
+        }
     } catch (PDOException $e) {
         echo json_encode(['error' => $e->getMessage()]);
     }
@@ -315,18 +338,32 @@ function getCart($pdo) {
         echo json_encode(['error' => 'Not authorized']);
         return;
     }
+
     $userId = $_SESSION['user_id'];
+
     try {
-        $stmt = $pdo->prepare("SELECT car_id FROM user_cart WHERE user_id = ?");
+        $stmt = $pdo->prepare("
+            SELECT c.id, c.brand, c.model, c.year, c.price, c.images 
+            FROM cart 
+            JOIN cars c ON cart.car_id = c.id 
+            WHERE cart.user_id = ?
+        ");
         $stmt->execute([$userId]);
-        $cart = $stmt->fetchAll(PDO::FETCH_COLUMN);
-        echo json_encode($cart);
+        $cartItems = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        // Преобразуем images из JSON строки в массив
+        foreach ($cartItems as &$item) {
+            if (isset($item['images'])) {
+                $item['images'] = json_decode($item['images'], true);
+            }
+        }
+        echo json_encode($cartItems);
     } catch (PDOException $e) {
         echo json_encode(['error' => $e->getMessage()]);
     }
 }
 
-// Функции для работы с избранным
+// ====== Избранное ======
+
 function addToFavorites($pdo) {
     if (!isset($_SESSION['user_id'])) {
         echo json_encode(['error' => 'Not authorized']);
@@ -334,15 +371,25 @@ function addToFavorites($pdo) {
     }
 
     $data = json_decode(file_get_contents('php://input'), true);
-    $carId = $data['carId'] ?? 0;
+    $carId = $data['carId'] ?? null;
+
+    if (!$carId) {
+        echo json_encode(['error' => 'Car ID required']);
+        return;
+    }
+
     $userId = $_SESSION['user_id'];
 
     try {
-        $stmt = $pdo->prepare("
-            INSERT INTO favorites (user_id, car_id) 
-            VALUES (?, ?)
-            ON CONFLICT (user_id, car_id) DO NOTHING
-        ");
+        // Проверяем, есть ли уже в избранном
+        $stmt = $pdo->prepare("SELECT id FROM favorites WHERE user_id = ? AND car_id = ?");
+        $stmt->execute([$userId, $carId]);
+        if ($stmt->fetch()) {
+            echo json_encode(['success' => true, 'message' => 'Already in favorites']);
+            return;
+        }
+
+        $stmt = $pdo->prepare("INSERT INTO favorites (user_id, car_id) VALUES (?, ?)");
         $stmt->execute([$userId, $carId]);
         echo json_encode(['success' => true]);
     } catch (PDOException $e) {
@@ -357,13 +404,24 @@ function removeFromFavorites($pdo) {
     }
 
     $data = json_decode(file_get_contents('php://input'), true);
-    $carId = $data['carId'] ?? 0;
+    $carId = $data['carId'] ?? null;
+
+    if (!$carId) {
+        echo json_encode(['error' => 'Car ID required']);
+        return;
+    }
+
     $userId = $_SESSION['user_id'];
 
     try {
         $stmt = $pdo->prepare("DELETE FROM favorites WHERE user_id = ? AND car_id = ?");
         $stmt->execute([$userId, $carId]);
-        echo json_encode(['success' => true]);
+        $count = $stmt->rowCount();
+        if ($count > 0) {
+            echo json_encode(['success' => true]);
+        } else {
+            echo json_encode(['error' => 'Item not found in favorites']);
+        }
     } catch (PDOException $e) {
         echo json_encode(['error' => $e->getMessage()]);
     }
@@ -374,13 +432,27 @@ function getFavorites($pdo) {
         echo json_encode(['error' => 'Not authorized']);
         return;
     }
+
     $userId = $_SESSION['user_id'];
+
     try {
-        $stmt = $pdo->prepare("SELECT car_id FROM favorites WHERE user_id = ?");
+        $stmt = $pdo->prepare("
+            SELECT c.id, c.brand, c.model, c.year, c.price, c.images 
+            FROM favorites 
+            JOIN cars c ON favorites.car_id = c.id 
+            WHERE favorites.user_id = ?
+        ");
         $stmt->execute([$userId]);
-        $favorites = $stmt->fetchAll(PDO::FETCH_COLUMN);
-        echo json_encode($favorites);
+        $favItems = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        // Преобразуем images из JSON строки в массив
+        foreach ($favItems as &$item) {
+            if (isset($item['images'])) {
+                $item['images'] = json_decode($item['images'], true);
+            }
+        }
+        echo json_encode($favItems);
     } catch (PDOException $e) {
         echo json_encode(['error' => $e->getMessage()]);
     }
 }
+?>
