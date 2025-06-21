@@ -69,3 +69,4 @@ CREATE TABLE orders (
     status VARCHAR(50) DEFAULT 'Ожидает подтверждения',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+ALTER TABLE feedback ADD COLUMN status VARCHAR(20) DEFAULT 'new';
