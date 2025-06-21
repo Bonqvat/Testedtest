@@ -43,9 +43,47 @@ async function initCatalogPage() {
   }
   
   // Применяем фильтры
+  applyUrlFilters()
   filterCars();
+  updateFilterOptions(currentFilteredCars);
   updatePagination();
   updateHeaderCounters();
+}
+
+function applyUrlFilters() {
+  const state = getAppState(); // Получаем текущее состояние
+  
+  // Если мы не на странице каталога, выходим
+  if (state.currentPage !== 'catalog') return;
+  
+  const filters = state.searchParams; // Получаем сохраненные параметры фильтрации
+  
+  // Бренд
+  if (filters.brand) {
+    document.getElementById('brandSelect').value = filters.brand;
+    updateModels();
+  }
+  
+  // Модель
+  if (filters.model) {
+    // Ждем обновления списка моделей
+    setTimeout(() => {
+      document.getElementById('modelSelect').value = filters.mode;
+    }, 100);
+  }
+  
+  // Максимальная цена
+  if (filters.maxPrice) {
+    document.getElementById('maxPrice').value = filters.maxPrice;
+  }
+  
+  // Тип кузова
+  if (filters.bodyType) {
+    document.getElementById('bodyTypeSelect').value = filters.bodyType;
+  }
+  
+  // Применяем фильтры
+  setTimeout(() => filterCars(), 200);
 }
 
 function setupEventListeners() {
@@ -515,7 +553,6 @@ function filterCars() {
   
   currentPage = 1; // Сбрасываем на первую страницу при фильтрации
 
-  updateFilterOptions(currentFilteredCars);
   renderCatalog(currentFilteredCars);
 }
     

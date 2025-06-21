@@ -655,6 +655,7 @@ window.performSearch = function() {
 };
 
 // Экспорт функций в глобальную область видимости
+window.getAppState = getAppState;
 window.addToCart = addToCart;
 window.addToFavorites = addToFavorites;
 window.removeFromCart = removeFromCart;
