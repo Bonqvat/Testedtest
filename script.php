@@ -78,16 +78,6 @@ function getCars($pdo) {
             ORDER BY created_at DESC
         ");
         $cars = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        foreach ($cars as &$car) {
-            if (isset($car['bodytype'])) {
-                $car['bodyType'] = $car['bodytype'];
-                unset($car['bodytype']);
-            }
-            if (isset($car['createdat'])) {
-                $car['createdAt'] = $car['createdat'];
-                unset($car['createdat']);
-            }
-        }
         echo json_encode($cars);
     } catch (PDOException $e) {
         echo json_encode(['error' => $e->getMessage()]);
@@ -97,15 +87,12 @@ function getCars($pdo) {
 function addFeedback($pdo) {
     $data = json_decode(file_get_contents('php://input'), true);
     
-    $name = $data['name'] ?? '';
-    $phone = $data['phone'] ?? '';
-    $email = $data['email'] ?? '';
-    $subject = $data['subject'] ?? '';
-    $message = $data['message'] ?? '';
-
-    if (empty($name) || empty($phone) || empty($email) || empty($subject) || empty($message)) {
-        echo json_encode(['error' => 'All fields are required']);
-        return;
+    $required = ['name', 'phone', 'email', 'subject', 'message'];
+    foreach ($required as $field) {
+        if (empty($data[$field] ?? '')) {
+            echo json_encode(['error' => "Поле $field обязательно для заполнения"]);
+            return;
+        }
     }
 
     try {
@@ -113,7 +100,14 @@ function addFeedback($pdo) {
             INSERT INTO feedback (name, phone, email, subject, message) 
             VALUES (?, ?, ?, ?, ?)
         ");
-        $stmt->execute([$name, $phone, $email, $subject, $message]);
+        $stmt->execute([
+            $data['name'],
+            $data['phone'],
+            $data['email'],
+            $data['subject'],
+            $data['message']
+        ]);
+        
         echo json_encode(['success' => true]);
     } catch (PDOException $e) {
         echo json_encode(['error' => $e->getMessage()]);

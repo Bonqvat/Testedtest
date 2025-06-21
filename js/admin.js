@@ -146,11 +146,111 @@ function initAdminPage() {
             });
         });
     }
+
+    // ============== ФУНКЦИИ ДЛЯ РАБОТЫ С ЗАЯВКАМИ ==============
     
-    // Инициализация при загрузке страницы
+    // Загрузка заявок с сервера
+    async function loadFeedback() {
+        try {
+            const response = await fetch('ajax.php?action=getFeedback');
+            window.adminFeedback = await response.json();
+        } catch (error) {
+            console.error('Error loading feedback:', error);
+            showNotification('Ошибка загрузки заявок', 'error');
+        }
+    }
+
+    // Отрисовка таблицы заявок
+    function renderFeedback() {
+        const tableBody = document.querySelector('#requests tbody');
+        if (!tableBody) return;
+        
+        tableBody.innerHTML = '';
+        
+        window.adminFeedback.forEach(fb => {
+            const date = new Date(fb.created_at);
+            const dateStr = `${date.getDate().toString().padStart(2, '0')}.${(date.getMonth()+1).toString().padStart(2, '0')}.${date.getFullYear()}`;
+            
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>#${fb.id}</td>
+                <td>${fb.name}</td>
+                <td>${fb.phone}</td>
+                <td>${fb.subject}</td>
+                <td>${dateStr}</td>
+                <td><span class="status status-${fb.status}">${getStatusText(fb.status)}</span></td>
+                <td>
+                    <button class="action-btn edit" data-id="${fb.id}"><i class="fas fa-edit"></i></button>
+                    <button class="action-btn delete" data-id="${fb.id}"><i class="fas fa-trash"></i></button>
+                </td>
+            `;
+            tableBody.appendChild(row);
+        });
+    }
+
+    // Преобразование статуса в текст
+    function getStatusText(status) {
+        const statuses = {
+            'new': 'Новая',
+            'in_progress': 'В обработке',
+            'resolved': 'Завершена'
+        };
+        return statuses[status] || status;
+    }
+
+    // Удаление заявки
+    function deleteFeedback(id) {
+        const row = document.querySelector(`#requests tr[data-id="${id}"]`);
+        if (!row) return;
+        
+        if (confirm(`Удалить заявку #${id}?`)) {
+            row.style.opacity = '0.5';
+            setTimeout(() => {
+                row.remove();
+                showNotification(`Заявка #${id} удалена`, 'success');
+            }, 500);
+        }
+    }
+
+    // Редактирование статуса заявки
+    function editFeedback(id) {
+        const statusCell = document.querySelector(`#requests tr[data-id="${id}"] .status`);
+        if (!statusCell) return;
+        
+        const statuses = ['new', 'in_progress', 'resolved'];
+        const currentStatus = statusCell.className.replace('status status-', '');
+        const currentIndex = statuses.indexOf(currentStatus);
+        const nextIndex = (currentIndex + 1) % statuses.length;
+        const newStatus = statuses[nextIndex];
+        
+        statusCell.className = `status status-${newStatus}`;
+        statusCell.textContent = getStatusText(newStatus);
+        
+        showNotification(`Статус заявки #${id} изменен`, 'success');
+    }
+
+    // Обработчики для таблицы заявок
+    document.querySelector('#requests')?.addEventListener('click', function(e) {
+        const btn = e.target.closest('.action-btn');
+        if (!btn) return;
+        
+        const id = btn.dataset.id;
+        
+        if (btn.classList.contains('delete')) {
+            deleteFeedback(id);
+        } 
+        else if (btn.classList.contains('edit')) {
+            editFeedback(id);
+        }
+    });
+
+    // ============== ИНИЦИАЛИЗАЦИЯ ПРИ ЗАГРУЗКЕ ==============
+    
     updateHeaderCounters();
-    // Загрузка начальных данных автомобилей
+    
+    // Загрузка начальных данных
     loadCars().then(renderCarList);
+    loadFeedback().then(renderFeedback);
 }
 
 window.initAdminPage = initAdminPage;

@@ -241,11 +241,6 @@ function showNotification(message) {
   setTimeout(() => notification.classList.remove('show'), 3000);
 }
 
-window.checkoutAll = function() {
-  //Тут как-то передашь айдишники машин из корзины, хз как ты переделаешь страницу заказа
-  window.location.hash = '#order';
-}
-
 window.initFavoritesPage = initFavoritesPage;
 window.addToCart = addToCart;
 window.removeFromCart = removeFromCart;
