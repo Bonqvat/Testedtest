@@ -78,6 +78,16 @@ function getCars($pdo) {
             ORDER BY created_at DESC
         ");
         $cars = $stmt->fetchAll(PDO::FETCH_ASSOC);
+		 foreach ($cars as &$car) {Add commentMore actions
+            if (isset($car['bodytype'])) {
+                $car['bodyType'] = $car['bodytype'];
+                unset($car['bodytype']);
+            }
+            if (isset($car['createdat'])) {
+                $car['createdAt'] = $car['createdat'];
+                unset($car['createdat']);
+            }
+        }
         echo json_encode($cars);
     } catch (PDOException $e) {
         echo json_encode(['error' => $e->getMessage()]);
