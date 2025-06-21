@@ -24,7 +24,15 @@ function initCarPage() {
 
       document.querySelector('.cart-btn')?.addEventListener('click', () => addToCart(carId));
       document.querySelector('.favorite-btn')?.addEventListener('click', () => addToFavorites(carId));
-      document.querySelector('.order-btn')?.addEventListener('click', showOrderModal);
+      document.querySelector('.order-btn')?.addEventListener('click', () => {
+        // Сохраняем ID автомобиля для использования на странице заказа
+        const state = JSON.parse(localStorage.getItem('futureAutoState'));
+        state.orderCarId = carId; // Используем текущий carId
+        localStorage.setItem('futureAutoState', JSON.stringify(state));
+        
+        // Перенаправляем на страницу заказа
+        window.location.hash = '#order';
+      });
       document.querySelector('.test-drive-btn')?.addEventListener('click', showTestDriveModal);
     } else {
       showError('Автомобиль не найден');
@@ -33,13 +41,7 @@ function initCarPage() {
     showError('Не выбран автомобиль для просмотра');
   }
 
-  // Обработчики форм
-  document.getElementById('orderForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    alert('Ваш заказ успешно оформлен! С вами свяжется менеджер для подтверждения.');
-    closeModal('orderModal');
-  });
-
+  // Обработчик формы тест-драйва (форма заказа удалена)
   document.getElementById('testDriveForm').addEventListener('submit', function(e) {
     e.preventDefault();
     alert('Вы успешно записаны на тест-драйв! С вами свяжется менеджер для подтверждения.');
@@ -102,10 +104,6 @@ function changeColor(color, imageUrl) {
   const colors = document.querySelectorAll('.color');
   colors.forEach(c => c.classList.remove('active'));
   event.target.classList.add('active');
-}
-
-function showOrderModal() {
-  document.getElementById('orderModal').style.display = 'block';
 }
 
 function showTestDriveModal() {
