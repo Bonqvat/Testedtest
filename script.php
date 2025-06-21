@@ -54,6 +54,9 @@ switch ($action) {
     case 'getFavorites':
         getFavorites($pdo);
         break;
+    case 'placeOrder':
+        placeOrder($pdo);
+        break;
     default:
         echo json_encode(['error' => 'Invalid action']);
 }
@@ -154,7 +157,6 @@ function updateUserData($pdo) {
             case 'security':
                 $currentPassword = $data['currentPassword'] ?? '';
                 $newPassword = $data['newPassword'] ?? '';
-                // Проверяем текущий пароль
                 $stmt = $pdo->prepare("SELECT password FROM users WHERE id = ?");
                 $stmt->execute([$userId]);
                 $user = $stmt->fetch();
@@ -197,14 +199,11 @@ function loginUser($pdo) {
             return;
         }
 
-        // Устанавливаем сессию
         $_SESSION['user_id'] = $user['id'];
         
-        // Обновляем время последнего входа
         $updateStmt = $pdo->prepare("UPDATE users SET last_login = NOW() WHERE id = ?");
         $updateStmt->execute([$user['id']]);
 
-        // Возвращаем безопасные данные пользователя
         echo json_encode([
             'success' => true, 
             'user' => [
@@ -219,7 +218,6 @@ function loginUser($pdo) {
     }
 }
 
-// Новая функция для регистрации пользователя
 function registerUser($pdo) {
     $data = json_decode(file_get_contents('php://input'), true);
     
@@ -235,7 +233,6 @@ function registerUser($pdo) {
     }
 
     try {
-        // Проверка существования email
         $stmt = $pdo->prepare("SELECT id FROM users WHERE email = ?");
         $stmt->execute([$email]);
         if ($stmt->fetch()) {
@@ -243,10 +240,8 @@ function registerUser($pdo) {
             return;
         }
 
-        // Хеширование пароля
         $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
         
-        // Вставка нового пользователя
         $stmt = $pdo->prepare("
             INSERT INTO users (email, password, name, phone, address, created_at) 
             VALUES (?, ?, ?, ?, ?, NOW())
@@ -254,12 +249,10 @@ function registerUser($pdo) {
         $stmt->execute([$email, $hashedPassword, $name, $phone, $address]);
         $userId = $pdo->lastInsertId();
 
-        // Устанавливаем сессию
         $_SESSION['user_id'] = $userId;
 
         echo json_encode(['success' => true, 'userId' => $userId]);
     } catch (PDOException $e) {
-        // Обработка ошибки дубликата (хотя мы уже проверили выше)
         if ($e->getCode() == 23505) {
             echo json_encode(['error' => 'Email already registered']);
         } else {
@@ -267,8 +260,6 @@ function registerUser($pdo) {
         }
     }
 }
-
-// ====== Корзина ======
 
 function addToCart($pdo) {
     if (!isset($_SESSION['user_id'])) {
@@ -287,7 +278,6 @@ function addToCart($pdo) {
     $userId = $_SESSION['user_id'];
 
     try {
-        // Проверяем, есть ли уже в корзине
         $stmt = $pdo->prepare("SELECT id FROM cart WHERE user_id = ? AND car_id = ?");
         $stmt->execute([$userId, $carId]);
         if ($stmt->fetch()) {
@@ -350,7 +340,6 @@ function getCart($pdo) {
         ");
         $stmt->execute([$userId]);
         $cartItems = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        // Преобразуем images из JSON строки в массив
         foreach ($cartItems as &$item) {
             if (isset($item['images'])) {
                 $item['images'] = json_decode($item['images'], true);
@@ -361,8 +350,6 @@ function getCart($pdo) {
         echo json_encode(['error' => $e->getMessage()]);
     }
 }
-
-// ====== Избранное ======
 
 function addToFavorites($pdo) {
     if (!isset($_SESSION['user_id'])) {
@@ -381,7 +368,6 @@ function addToFavorites($pdo) {
     $userId = $_SESSION['user_id'];
 
     try {
-        // Проверяем, есть ли уже в избранном
         $stmt = $pdo->prepare("SELECT id FROM favorites WHERE user_id = ? AND car_id = ?");
         $stmt->execute([$userId, $carId]);
         if ($stmt->fetch()) {
@@ -444,7 +430,6 @@ function getFavorites($pdo) {
         ");
         $stmt->execute([$userId]);
         $favItems = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        // Преобразуем images из JSON строки в массив
         foreach ($favItems as &$item) {
             if (isset($item['images'])) {
                 $item['images'] = json_decode($item['images'], true);
@@ -455,4 +440,63 @@ function getFavorites($pdo) {
         echo json_encode(['error' => $e->getMessage()]);
     }
 }
-?>
+
+function placeOrder($pdo) {
+    if (!isset($_SESSION['user_id'])) {
+        echo json_encode(['error' => 'Not authorized']);
+        return;
+    }
+
+    $data = json_decode(file_get_contents('php://input'), true);
+    $userId = $_SESSION['user_id'];
+    
+    if (empty($data['carId']) || empty($data['dealer']) || empty($data['totalPrice'])) {
+        echo json_encode(['error' => 'Missing required data']);
+        return;
+    }
+
+    try {
+        $carStmt = $pdo->prepare("
+            SELECT id, brand, model, year, price 
+            FROM cars WHERE id = ?
+        ");
+        $carStmt->execute([$data['carId']]);
+        $car = $carStmt->fetch(PDO::FETCH_ASSOC);
+        
+        if (!$car) {
+            echo json_encode(['error' => 'Car not found']);
+            return;
+        }
+
+        $stmt = $pdo->prepare("
+            INSERT INTO orders (
+                user_id, car_id, car_brand, car_model, car_year, car_price,
+                services, options, dealer, total_price, created_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
+            RETURNING id
+        ");
+        
+        $services = $data['services'] ?? [];
+        $options = $data['options'] ?? [];
+        
+        $stmt->execute([
+            $userId,
+            $car['id'],
+            $car['brand'],
+            $car['model'],
+            $car['year'],
+            $car['price'],
+            json_encode($services),
+            json_encode($options),
+            $data['dealer'],
+            $data['totalPrice']
+        ]);
+        
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        $orderId = $result['id'] ?? null;
+        
+        echo json_encode(['success' => true, 'orderId' => $orderId]);
+    } catch (PDOException $e) {
+        echo json_encode(['error' => $e->getMessage()]);
+    }
+}

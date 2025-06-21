@@ -8,57 +8,109 @@ function initOrderPage() {
         }));
     }
 
-    // Данные об автомобилях
+    // Данные об автомобилях (обновлены в соответствии с таблицей)
     const carData = {
         "Toyota": {
-            models: ["Camry", "Corolla", "RAV4", "Land Cruiser", "Hilux"],
+            models: ["Camry", "RAV4"],
             images: {
-                "Camry": "https://via.placeholder.com/600x400?text=Toyota+Camry",
-                "Corolla": "https://via.placeholder.com/600x400?text=Toyota+Corolla",
-                "RAV4": "https://via.placeholder.com/600x400?text=Toyota+RAV4",
-                "Land Cruiser": "https://via.placeholder.com/600x400?text=Land+Cruiser",
-                "Hilux": "https://via.placeholder.com/600x400?text=Toyota+Hilux"
-            }
-        },
-        "Honda": {
-            models: ["Civic", "Accord", "CR-V", "Pilot", "HR-V"],
-            images: {
-                "Civic": "https://via.placeholder.com/600x400?text=Honda+Civic",
-                "Accord": "https://via.placeholder.com/600x400?text=Honda+Accord",
-                "CR-V": "https://via.placeholder.com/600x400?text=Honda+CR-V",
-                "Pilot": "https://via.placeholder.com/600x400?text=Honda+Pilot",
-                "HR-V": "https://via.placeholder.com/600x400?text=Honda+HR-V"
+                "Camry": "https://avatars.mds.yandex.net/get-autoru-vos/2051780/3f8b3e2d6f4f0c2b6e3b4f3b4f3b4f3b/1200x900n",
+                "RAV4": "https://avatars.mds.yandex.net/get-autoru-vos/2051780/3f8b3e2d6f4f0c2b6e3b4f3b4f3b4f3b/1200x900n"
             }
         },
         "BMW": {
-            models: ["X5", "X3", "M3", "X7", "5-Series"],
+            models: ["X5"],
             images: {
-                "X5": "https://via.placeholder.com/600x400?text=BMW+X5",
-                "X3": "https://via.placeholder.com/600x400?text=BMW+X3",
-                "M3": "https://via.placeholder.com/600x400?text=BMW+M3",
-                "X7": "https://via.placeholder.com/600x400?text=BMW+X7",
-                "5-Series": "https://via.placeholder.com/600x400?text=BMW+5-Series"
+                "X5": "https://www.bmw.ru/content/dam/bmw/marketRU/bmw_ru/all-models/x-series/X5/2023/images-and-videos/images/BMW-X5-M60i-xDrive-Facelift-Exterior-05.jpg"
+            }
+        },
+        "Audi": {
+            models: ["A6"],
+            images: {
+                "A6": "https://avatars.mds.yandex.net/i?id=c0ea7b8d75d1b28d365e538c651c14a0_l-8498375-images-thumbs&n=13/1200x900n/1920x1080_A213561_large.jpg"
+            }
+        },
+        "Skoda": {
+            models: ["Superb"],
+            images: {
+                "Superb": "https://avatars.mds.yandex.net/get-autoru-vos/2177055/e49e3cbe7278978151aa5a83e7f1b8e0/1200x900"
+            }
+        },
+        "Hyundai": {
+            models: ["Tucson"],
+            images: {
+                "Tucson": "https://www.hyundai.com/content/hyundai/ww/data/news/data/2023/0000016718/image/newsroom-2023-tucson-design-01.jpg"
+            }
+        },
+        "Kia": {
+            models: ["Sportage"],
+            images: {
+                "Sportage": "https://www.kia.com/content/dam/kia/us/en/home/hero/sportage/sportage_my24_hero_desktop.jpg"
+            }
+        },
+        "Volkswagen": {
+            models: ["Golf"],
+            images: {
+                "Golf": "https://avatars.mds.yandex.net/get-autoru-vos/2051780/3f8b3e2d6f4f0c2b6e3b4f3b4f3b4f3b/1200x900n"
+            }
+        },
+        "Ford": {
+            models: ["Mustang"],
+            images: {
+                "Mustang": "https://www.ford.com/cmslibs/content/dam/vdm_ford/live/en_us/ford/nameplate/mustang/2024/collections/3_2/24_FRD_MST_53895.jpg"
+            }
+        },
+        "Lada": {
+            models: ["Vesta"],
+            images: {
+                "Vesta": "https://static.lada.ru/images/v6/cars/vesta/sedan/gallery/vesta-sedan-21.jpg"
             }
         }
     };
 
-    // Цены автомобилей
+    // Цены автомобилей (обновлены в соответствии с таблицей)
     const carPrices = {
-        "Camry": 2500000,
-        "Corolla": 1800000,
-        "RAV4": 2800000,
-        "Land Cruiser": 6000000,
-        "Hilux": 3000000,
-        "Civic": 1900000,
-        "Accord": 2300000,
-        "CR-V": 2700000,
-        "Pilot": 3500000,
-        "HR-V": 2200000,
-        "X5": 5500000,
-        "X3": 4800000,
-        "M3": 6000000,
-        "X7": 7000000,
-        "5-Series": 5000000
+        "Camry": 2450000,
+        "RAV4": 3450000,
+        "X5": 6890000,
+        "A6": 4120000,
+        "Superb": 2950000,
+        "Tucson": 2850000,
+        "Sportage": 2750000,
+        "Golf": 1950000,
+        "Mustang": 5890000,
+        "Vesta": 1250000
+    };
+
+    // Карта соответствия автомобилей ID (обновлена в соответствии с таблицей)
+    const carIds = {
+        "Toyota": {
+            "Camry": 1,
+            "RAV4": 10
+        },
+        "BMW": {
+            "X5": 2
+        },
+        "Audi": {
+            "A6": 3
+        },
+        "Skoda": {
+            "Superb": 4
+        },
+        "Hyundai": {
+            "Tucson": 5
+        },
+        "Kia": {
+            "Sportage": 6
+        },
+        "Volkswagen": {
+            "Golf": 7
+        },
+        "Ford": {
+            "Mustang": 8
+        },
+        "Lada": {
+            "Vesta": 9
+        }
     };
 
     // Обновление списка моделей
@@ -120,9 +172,16 @@ function initOrderPage() {
     function showOrderConfirmation() {
         const brand = document.getElementById("brand").value;
         const model = document.getElementById("model").value;
+        const phone = document.getElementById("phone").value.trim();
+        const phoneRegex = /^\+7\d{10}$/;
         
         if (!brand || !model) {
             alert("Пожалуйста, выберите марку и модель автомобиля!");
+            return;
+        }
+        
+        if (!phoneRegex.test(phone)) {
+            alert("Пожалуйста, введите номер телефона в формате +7XXXXXXXXXX");
             return;
         }
         
@@ -191,6 +250,92 @@ function initOrderPage() {
         document.getElementById("totalPrice").textContent = (car + services + options).toLocaleString();
     }
 
+    // Получение ID автомобиля
+    function findCarId(brand, model) {
+        return carIds[brand]?.[model] || null;
+    }
+
+    // Отправка заказа на сервер
+    function submitOrder() {
+        const brand = document.getElementById("brand").value;
+        const model = document.getElementById("model").value;
+        const phone = document.getElementById("phone").value.trim();
+        const phoneRegex = /^\+7\d{10}$/;
+        const carId = findCarId(brand, model);
+        
+        if (!carId) {
+            alert("Ошибка: Не удалось определить ID автомобиля");
+            return;
+        }
+
+        if (!phoneRegex.test(phone)) {
+            alert("Пожалуйста, введите номер телефона в формате +7XXXXXXXXXX");
+            return;
+        }
+
+        const selectedServices = Array.from(
+            document.getElementById("services").selectedOptions
+        ).map(opt => opt.text);
+        
+        const selectedOptions = Array.from(
+            document.getElementById("options").selectedOptions
+        ).map(opt => opt.text);
+        
+        const dealerSelect = document.getElementById("dealer");
+        const dealer = dealerSelect.options[dealerSelect.selectedIndex].text;
+        const totalPrice = parseInt(
+            document.getElementById("totalPrice").textContent.replace(/\s+/g, '')
+        );
+
+        // Проверка обязательных полей
+        if (!brand || !model || !dealer || totalPrice <= 0) {
+            alert("Пожалуйста, заполните все обязательные поля!");
+            return;
+        }
+
+        fetch('script.php?action=placeOrder', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                carId: carId,
+                services: selectedServices,
+                options: selectedOptions,
+                dealer: dealer,
+                totalPrice: totalPrice,
+                phone: phone
+            })
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Ошибка сети');
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                alert(`Заказ #${data.orderId} успешно оформлен!`);
+                closeOrderModal();
+                
+                // Сброс формы после успешного оформления
+                document.getElementById("brand").value = "";
+                document.getElementById("model").innerHTML = '<option value="">Выберите модель автомобиля</option>';
+                document.getElementById("carPreview").style.display = 'none';
+                document.getElementById("services").selectedIndex = -1;
+                document.getElementById("options").selectedIndex = -1;
+                document.getElementById("dealer").selectedIndex = 0;
+                document.getElementById("phone").value = "";
+                updateServices(document.getElementById("services"));
+                updateOptions(document.getElementById("options"));
+                updateTotal();
+            } else {
+                throw new Error(data.error || 'Неизвестная ошибка сервера');
+            }
+        })
+        .catch(error => {
+            alert(`Ошибка оформления заказа: ${error.message}`);
+        });
+    }
+
     // Инициализация страницы
     function initPage() {
         // Заполняем список марок
@@ -239,6 +384,7 @@ function initOrderPage() {
     window.updateOptions = updateOptions;
     window.showOrderConfirmation = showOrderConfirmation;
     window.closeOrderModal = closeOrderModal;
+    window.submitOrder = submitOrder;
 }
 
 window.initOrderPage = initOrderPage;

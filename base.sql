@@ -54,3 +54,18 @@ CREATE TABLE favorites (
     added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     UNIQUE(user_id, car_id)
 );
+CREATE TABLE orders (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    car_id INTEGER NOT NULL REFERENCES cars(id) ON DELETE CASCADE,
+    car_brand VARCHAR(50) NOT NULL,
+    car_model VARCHAR(50) NOT NULL,
+    car_year INTEGER NOT NULL,
+    car_price INTEGER NOT NULL,
+    services JSONB NOT NULL,
+    options JSONB NOT NULL,
+    dealer VARCHAR(100) NOT NULL,
+    total_price INTEGER NOT NULL,
+    status VARCHAR(50) DEFAULT 'Ожидает подтверждения',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
